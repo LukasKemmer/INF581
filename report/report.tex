@@ -62,7 +62,7 @@ In this report we analyze a supply-chain optimization environment that we regard
 	\label{fig:model_example}
 	\centering
 	\includegraphics[width=0.4\columnwidth]{model.png}
-	\caption{\label{a_figure}Example of a supply chain network with $k=5$ warehouses ($s_1, .., s_5$) the factory ($s_0$).}
+	\caption{\label{a_figure}Example of a supply chain network with $k=5$ warehouses ($s_1, .., s_5$) and the factory ($s_0$).}
 \end{figure}
 The state space consists of $k+1$ elements describing the current stock levels of the factory and the warehouses ($s_j, j=0,...,k$), where each stock level is limited by some capacity $c_j \in \mathbb{N}$. Note that this implies that the factory itself can also build up stock. Furthermore we include an environment process $D$ describing the (stochastic) demand $d_j$ at each warehouse $j = 1,...,k$ with transition probabilities $q_d(d')$ that are unknown by the agent. In each period the agent can now set the factories production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ (with a maximum production of $\rho_{max} \in \mathbb{N}$) aswell as the number of products shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the state transitions $(s, d, a) \rightarrow T(s,d,a)$ by
 \begin{equation}
