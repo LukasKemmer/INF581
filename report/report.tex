@@ -61,23 +61,25 @@ In this report we work with a supply-chain optimization environment over an infi
 \begin{figure}[h]
 	\label{fig:model_example}
 	\centering
-	\includegraphics[width=0.5\columnwidth]{model.png}
-	\caption{\label{a_figure}Example of a supply chain network with $k=5$ and a central factory.}
+	\includegraphics[width=0.4\columnwidth]{model.png}
+	\caption{\label{a_figure}Example of a supply chain network with $k=5$ warehouses ($s_1, .., s_5$) the factory ($s_0$).}
 \end{figure}
-The state space consists of $k+1$ elements describing the current stock level of the factory / the warehouses where each stock level is limited by some $c_j \in \mathbb{N}$. Furthermore we include an environment process $D$ describing the (stochastic) demand at each warehouse. In each period the agent can now set the production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ where $\rho_{max} \in \mathbb{N}$ is the maximum production aswell as the amount of products that is shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the transition for $s_0$, $s_j, \ j = 1,..., k$ by
+The state space consists of $k+1$ elements describing the current stock level of the factory / the warehouses where each stock level is limited by some $c_j \in \mathbb{N}$. Furthermore we include an environment process $D$ describing the (stochastic) demand $d_j$ at each warehouse $j = 1,...,k$. In each period the agent can now set the production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ where $\rho_{max} \in \mathbb{N}$ is the maximum production aswell as the amount of products that is shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the transition for $s_0$, $s_j, \ j = 1,..., k$ by
 \begin{equation}
 	\begin{split}
 		s_0' = &\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j \}, \\
 		s_j' = &\min\{s_j + a_j - d_j\}, \ j=1,...,k.
 	\end{split}
 	\end{equation}
-%
-For a clear overview in the following we present all the assumptions of our decision model.
-\textbf{Assumptions}
-\begin{itemize}
-	\item[(A1)] ...
-\end{itemize}
-Based on the previous model description we can now formulate the problem as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(S, D, A, \mathcal{X}, T, Q, r, \gamma)$ with
+The reward within each period consists of the revenue from sold products at a fix price $p$ less production costs $\kappa_{pr}a_0$, storage costs $\sum_{j=0}^{k}\kappa_{st,j} \max\{s_j, 0\}$, penalty costs $\kappa_{pe} \sum_{j=1}^{k}\min\{s_j,0\}$ and transportation costs $\sum_{j=1}^{k} \kappa_{tr, j} \left\lceil a_j / \zeta_j \right\rceil$. We let $p, \kappa_{pr}, \kappa_{pe}, \kappa_{st, j}, \kappa_{tr,j} \in \mathbb{R}$ and $\zeta_j \in \mathbb{N}$ for $i=1,...,k$. We can now define the one-step reward function by
+\begin{equation}
+\label{eq:one_ste_reward}
+	\begin{split}
+		r(s, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
+		&-\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil
+	\end{split}
+\end{equation}
+with $\left\lceil x \right\rceil$ the ceiling of $x$. Based on the model description we can now formulate the task as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(S, D, A, \mathcal{X}, T, Q, r, \gamma)$ with
 \begin{defn} \label{def:modell} \
 	\begin{itemize}
 		\item[1.] $S \times D \coloneqq \prod\limits_{j=0}^{k} \{s_j \in \mathbb{Z} \ | \ s_j \leq c_j\} \times D, c_j \in \mathbb{N}$ the state space consisting of elements $(s,d) = ((s_0, s_1, ... , s_k), d)$;
@@ -93,13 +95,13 @@ Based on the previous model description we can now formulate the problem as an i
 				\end{split}
 			\end{equation*}
 		\item[5.] $ Q: \mathcal{X} \times S \times D \rightarrow [0,1]  $ the transition probabilities defined by $Q(s', d'\ |\ s, d, a) \coloneqq q_d(d')$ for $s' = T(s, d, a)$ and $0$ otherwise;
-		\item[6.] $ r: S \times D \times A \rightarrow \mathbb{R} $ the one-step reward function with 
-			\begin{equation*}
-				\begin{split}
-					r(s, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
-					&-\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil;
-				\end{split}
-			\end{equation*}
+		\item[6.] $ r: S \times D \times A \rightarrow \mathbb{R} $ the one-step reward function as defined in Eq.~\eqref{eq:one_ste_reward};
+%			\begin{equation*}
+%				\begin{split}
+%					r(s, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
+%					&-\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil;
+%				\end{split}
+%			\end{equation*}
 		\item[7.] $\gamma \in (0, 1) $ the discounting factor.
 	\end{itemize}
 \end{defn}
