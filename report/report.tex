@@ -12,10 +12,17 @@
 \newcommand{\ypred}{\mathbf{\hat y}}
 
 % Start of added stuff by lukas
-\newtheorem{defi}{Definition}[section]
+%\newtheorem{defi}{Definition}[section]
+% Packages
 \usepackage{mathtools}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{amsthm}
+% Theorems and definitions
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}[section]
+\theoremstyle{definition}
+\newtheorem{defn}[thm]{Definition}
 % End of added stuff by lukas
 
 \begin{document}
@@ -50,21 +57,28 @@ Elaborate (in your own words) the background material required to understand you
 \end{equation}
 
 \section{The Environment}
-
 For a clear overview in the following we present all the assumptions of our decision model.
 \textbf{Assumptions}
 \begin{itemize}
 	\item[(A1)] ...
 \end{itemize}
-Based on the previous model description we can now formulate the problem as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(S, D, A, \mathcal{X}, T, Q, r, \beta)$ with
-\begin{defi} \label{def:modell}  \
+Based on the previous model description we can now formulate the problem as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(S, D, A, \mathcal{X}, T, Q, r, \gamma)$ with
+\begin{defn} \label{def:modell} \
 	\begin{itemize}
-		\item[1.] $S \times D \coloneqq \prod\limits_{j=0}^{k} \{s_j \in \mathbb{Z} | s_j \leq c_j\} \times D, c_j \in \mathbb{N}$ the state space with $I \coloneqq P \times D$ consisting of elements $(s,d) = ((s_0, s_1, ... , s_k), d)$;
+		\item[1.] $S \times D \coloneqq \prod\limits_{j=0}^{k} \{s_j \in \mathbb{Z} | s_j \leq c_j\} \times D, c_j \in \mathbb{N}$ the state space consisting of elements $(s,d) = ((s_0, s_1, ... , s_k), d)$;
 		\item[2.] $ A \coloneqq  \{0, ..., \rho_{max} \} \times \mathbb{N}_0^k$ the action space consisting of elements $a = (a_0, ..., a_k)$;
-		\item[3.] $ \mathcal{X} (s) \coloneqq \{0, ..., \rho_{max} \} \times \{a \in \mathbb{N}_0^k | \sum_{j=1}^{k}a_j \leq s_0  \}$, the set of all feasible actions in a state $s$ and $\mathcal{X} \coloneqq \{(s, d , a) \in S \times D \times A \ | \ a \in \mathcal{X} (s, d)\}$;
-		\item[4.] $ (s, d, a) \rightarrow T(s, d, a) \coloneqq (\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \min\{s_i + a_i - d_i, c_i \}), i=1,...,k, s \in S, d \in D, a \in A$ the transition function;	
+		\item[3.] $ \mathcal{X} (s) \coloneqq \{0, ..., \rho_{max} \} \times \{a \in \mathbb{N}_0^k \ | \ \sum_{j=1}^{k}a_j \leq s_0  \}$, the set of all feasible actions in a state $s$ and $\mathcal{X} \coloneqq \{(s, d , a) \in S \times D \times A \ | \ a \in \mathcal{X} (s)\}$;
+		\item[4.] $ T: S \times D \times A \rightarrow S$ the transition function defined by
+			\begin{equation*}
+				\begin{split}
+					T(s, d, a) \coloneqq &(\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \\
+					&\min\{s_1 + a_1 - d_1, c_1 \}, \\
+					&\ ... \\
+					&\min\{s_k + a_k - d_k, c_k \});
+				\end{split}
+			\end{equation*}
 		\item[5.] $ Q: \mathcal{X} \times S \times D \rightarrow [0,1]  $ the transition probabilities defined by $Q(s', d'\ |\ s, d, a) \coloneqq q_d(d')$ for $s' = T(s, d, a)$ and $0$ otherwise;
-		\item[6.] $ r: S \times D \times A \rightarrow \mathbb{R} $ the one-step reward function defined by 
+		\item[6.] $ r: S \times D \times A \rightarrow \mathbb{R} $ the one-step reward function with 
 			\begin{equation*}
 				\begin{split}
 					r(s, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
@@ -73,7 +87,7 @@ Based on the previous model description we can now formulate the problem as an i
 			\end{equation*}
 		\item[7.] $\gamma \in (0, 1) $ the discounting factor.
 	\end{itemize}
-\end{defi}
+\end{defn}
 For the calculation of the expected discounted revenue for each tuple $(s, d)$ we obtain the value function $V$ with\\
 \begin{equation}
 	\label{eq:ValueFunction}
