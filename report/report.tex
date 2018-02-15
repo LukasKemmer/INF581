@@ -57,45 +57,54 @@ Elaborate (in your own words) the background material required to understand you
 \end{equation}
 
 \section{The Environment}
-In this report we work with a supply-chain optimization environment over an infinite amount of periods. The environment consists of one factory and up to $k \in \mathbb{N}$ warehouses where in each period it needs to be decided how many units of a product (e.g. butter) should be produced and how many should be shipped to the individual warehouses. A representation of a network with 5 warehouses is depicted in figure \ref{fig:model_example}. 
+In this report we analyze a supply-chain optimization environment that we regard over an infinite amount of periods. The environment consists of one factory (indexed by $0$) and up to $k \in \mathbb{N}$ warehouses (indexed by $j=1,...,k$) where in each period it needs to be decided how many units of a product (e.g. butter) should be produced and how many should be shipped to the individual warehouses. A representation of a network with 5 warehouses is depicted in figure \ref{fig:model_example}. 
 \begin{figure}[h]
 	\label{fig:model_example}
 	\centering
 	\includegraphics[width=0.4\columnwidth]{model.png}
 	\caption{\label{a_figure}Example of a supply chain network with $k=5$ warehouses ($s_1, .., s_5$) the factory ($s_0$).}
 \end{figure}
-The state space consists of $k+1$ elements describing the current stock level of the factory / the warehouses where each stock level is limited by some $c_j \in \mathbb{N}$. Furthermore we include an environment process $D$ describing the (stochastic) demand $d_j$ at each warehouse $j = 1,...,k$. In each period the agent can now set the production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ where $\rho_{max} \in \mathbb{N}$ is the maximum production aswell as the amount of products that is shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the transition for $s_0$, $s_j, \ j = 1,..., k$ by
+The state space consists of $k+1$ elements describing the current stock levels of the factory and the warehouses ($s_j, j=0,...,k$), where each stock level is limited by some capacity $c_j \in \mathbb{N}$. Note that this implies that the factory itself can also build up stock. Furthermore we include an environment process $D$ describing the (stochastic) demand $d_j$ at each warehouse $j = 1,...,k$ with transition probabilities $q_d(d')$ that are unknown by the agent. In each period the agent can now set the factories production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ (with a maximum production of $\rho_{max} \in \mathbb{N}$) aswell as the number of products shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the state transitions $(s, d, a) \rightarrow T(s,d,a)$ by
 \begin{equation}
+\label{eq:transition_function}
 	\begin{split}
-		s_0' = &\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j \}, \\
-		s_j' = &\min\{s_j + a_j - d_j\}, \ j=1,...,k.
-	\end{split}
-	\end{equation}
-The reward within each period consists of the revenue from sold products at a fix price $p$ less production costs $\kappa_{pr}a_0$, storage costs $\sum_{j=0}^{k}\kappa_{st,j} \max\{s_j, 0\}$, penalty costs $\kappa_{pe} \sum_{j=1}^{k}\min\{s_j,0\}$ and transportation costs $\sum_{j=1}^{k} \kappa_{tr, j} \left\lceil a_j / \zeta_j \right\rceil$. We let $p, \kappa_{pr}, \kappa_{pe}, \kappa_{st, j}, \kappa_{tr,j} \in \mathbb{R}$ and $\zeta_j \in \mathbb{N}$ for $i=1,...,k$. We can now define the one-step reward function by
+		T(s, d, a) \coloneqq &(\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \\
+		&\min\{s_1 + a_1 - d_1, c_1 \}, \\
+		&\ ... \\
+		&\min\{s_k + a_k - d_k, c_k \}).
+\end{split}
+\end{equation}
+%\begin{equation}
+%	\begin{split}
+%		s_0' = &\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j \}, \\
+%		s_j' = &\min\{s_j + a_j - d_j\}, \ j=1,...,k.
+%	\end{split}
+%	\end{equation}
+The reward within each period consists of the revenue from sold products at a fix price $p$ less production costs $\kappa_{pr}a_0$, storage costs $\sum_{j=0}^{k}\kappa_{st,j} \max\{s_j, 0\}$, penalty costs $\kappa_{pe} \sum_{j=1}^{k}\min\{s_j,0\}$ and transportation costs $\sum_{j=1}^{k} \kappa_{tr, j} \left\lceil a_j / \zeta_j \right\rceil$. We let $p, \kappa_{pr}, \kappa_{pe}, \kappa_{st, j}, \kappa_{tr,j} \in \mathbb{R}$ and $\zeta_j \in \mathbb{N}$. We can now define the one-step reward function by
 \begin{equation}
-\label{eq:one_ste_reward}
+\label{eq:one_step_reward}
 	\begin{split}
 		r(s, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
-		&-\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil
+		&-\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil,
 	\end{split}
 \end{equation}
-with $\left\lceil x \right\rceil$ the ceiling of $x$. Based on the model description we can now formulate the task as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(S, D, A, \mathcal{X}, T, Q, r, \gamma)$ with
+with $\left\lceil \cdot \right\rceil$ the ceiling function. Furthermore we chose a discounting factor $\gamma \in (0,1)$ that can be interpreted e.g. as a result of inflation. \newline Based on this model description we can now formulate the task as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(S, D, A, \mathcal{X}, T, Q, r, \gamma)$ with
 \begin{defn} \label{def:modell} \
 	\begin{itemize}
-		\item[1.] $S \times D \coloneqq \prod\limits_{j=0}^{k} \{s_j \in \mathbb{Z} \ | \ s_j \leq c_j\} \times D, c_j \in \mathbb{N}$ the state space consisting of elements $(s,d) = ((s_0, s_1, ... , s_k), d)$;
+		\item[1.] $S \times D \coloneqq \prod\limits_{j=0}^{k} \{s_j \in \mathbb{Z} \ | \ s_j \leq c_j\} \times D, c_j \in \mathbb{N}$ the state space consisting of elements $(s,d) = ((s_0, ... , s_k), (d_1, ..., d_k))$;
 		\item[2.] $ A \coloneqq  \{0, ..., \rho_{max} \} \times \mathbb{N}_0^k$ the action space consisting of elements $a = (a_0, ..., a_k)$;
 		\item[3.] $ \mathcal{X} (s) \coloneqq \{0, ..., \rho_{max} \} \times \{a \in \mathbb{N}_0^k \ | \ \sum_{j=1}^{k}a_j \leq s_0  \}$, the set of all feasible actions in a state $s$ and $\mathcal{X} \coloneqq \{(s, d , a) \in S \times D \times A \ | \ a \in \mathcal{X} (s)\}$;
-		\item[4.] $ T: S \times D \times A \rightarrow S$ the transition function defined by
-			\begin{equation*}
-				\begin{split}
-					T(s, d, a) \coloneqq &(\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \\
-					&\min\{s_1 + a_1 - d_1, c_1 \}, \\
-					&\ ... \\
-					&\min\{s_k + a_k - d_k, c_k \});
-				\end{split}
-			\end{equation*}
-		\item[5.] $ Q: \mathcal{X} \times S \times D \rightarrow [0,1]  $ the transition probabilities defined by $Q(s', d'\ |\ s, d, a) \coloneqq q_d(d')$ for $s' = T(s, d, a)$ and $0$ otherwise;
-		\item[6.] $ r: S \times D \times A \rightarrow \mathbb{R} $ the one-step reward function as defined in Eq.~\eqref{eq:one_ste_reward};
+		\item[4.] $ T: S \times D \times A \rightarrow S$ the transition function defined by Eq.~\eqref{eq:transition_function};
+%			\begin{equation*}
+%				\begin{split}
+%					T(s, d, a) \coloneqq &(\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \\
+%					&\min\{s_1 + a_1 - d_1, c_1 \}, \\
+%					&\ ... \\
+%					&\min\{s_k + a_k - d_k, c_k \});
+%				\end{split}
+%			\end{equation*}
+		\item[5.] $ Q: \mathcal{X} \times S \times D \rightarrow [0,1]  $ the transition probabilities with $Q(s', d'\ |\ s, d, a) \coloneqq q_d(d')$ for $s' = T(s, d, a)$ and $0$ otherwise;
+		\item[6.] $ r: S \times D \times A \rightarrow \mathbb{R} $ the one-step reward function as described in Eq.~\eqref{eq:one_step_reward};
 %			\begin{equation*}
 %				\begin{split}
 %					r(s, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
