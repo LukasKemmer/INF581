@@ -57,6 +57,21 @@ Elaborate (in your own words) the background material required to understand you
 \end{equation}
 
 \section{The Environment}
+In this report we work with a supply-chain optimization environment over an infinite amount of periods. The environment consists of one factory and up to $k \in \mathbb{N}$ warehouses where in each period it needs to be decided how many units of a product (e.g. butter) should be produced and how many should be shipped to the individual warehouses. A representation of a network with 5 warehouses is depicted in figure \ref{fig:model_example}. 
+\begin{figure}[h]
+	\label{fig:model_example}
+	\centering
+	\includegraphics[width=0.5\columnwidth]{model.png}
+	\caption{\label{a_figure}Example of a supply chain network with $k=5$ and a central factory.}
+\end{figure}
+The state space consists of $k+1$ elements describing the current stock level of the factory / the warehouses where each stock level is limited by some $c_j \in \mathbb{N}$. Furthermore we include an environment process $D$ describing the (stochastic) demand at each warehouse. In each period the agent can now set the production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ where $\rho_{max} \in \mathbb{N}$ is the maximum production aswell as the amount of products that is shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the transition for $s_0$, $s_j, \ j = 1,..., k$ by
+\begin{equation}
+	\begin{split}
+		s_0' = &\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j \}, \\
+		s_j' = &\min\{s_j + a_j - d_j\}, \ j=1,...,k.
+	\end{split}
+	\end{equation}
+%
 For a clear overview in the following we present all the assumptions of our decision model.
 \textbf{Assumptions}
 \begin{itemize}
