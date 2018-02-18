@@ -56,7 +56,7 @@ class SupplyDistribution:
                   - action[0] * self.prod_cost
                   - np.sum(np.maximum(np.zeros(len(self.s)), self.s) * self.store_cost)
                   - np.sum(np.minimum(np.zeros(len(self.s)), self.s)) * self.penalty_cost
-                  - np.sum(np.ceil(action[1:] / self.cap_truck).T * self.truck_cost))
+                  - np.sum(np.ceil(action[1:] / self.cap_truck) * self.truck_cost)) # Removed .T after np.ceil, as it was unnecessary -- Luke 19/02
         self.t += 1
         self.update_demand()
         done = 0
