@@ -27,7 +27,7 @@ reorder_quantity = np.array([11, 3, 3, 3])
 V = np.zeros(env.cap_store+1)
 
 # Define heuristical policy
-@nb.jit(nopython=True, cache=True)
+#@nb.jit(nopython=True, cache=True)
 def s_q_policy(state, threshold, reorder_quantity):
     '''
         Heuristic based on s_q policy
