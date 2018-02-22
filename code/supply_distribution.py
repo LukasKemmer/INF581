@@ -62,7 +62,7 @@ class SupplyDistribution:
         self.t += 1
         self.update_demand()
         done = 0
-        info = "hello!"  # TODO delete or do something -- Droche 15/02
+        info = "Demand was: ", self.demand  # TODO delete or do something -- Droche 15/02
         return self.s, reward, done, info
 
     def update_demand(self):
