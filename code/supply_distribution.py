@@ -49,6 +49,7 @@ class SupplyDistribution:
         self.s[0] = 5
         self.demand = np.zeros(self.n_stores, dtype=int)
         self.t = 0
+        return self.s
 
     def step(self, action):  # TODO Check np.array * -- Droche 15/02
         self.s[0] = min(self.s[0] + action[0] - sum(action[1:]), self.cap_store[0])
