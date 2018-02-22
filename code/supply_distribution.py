@@ -59,10 +59,10 @@ class SupplyDistribution:
                   - np.sum(np.maximum(np.zeros(len(self.s)), self.s) * self.store_cost)
                   - np.sum(np.minimum(np.zeros(len(self.s)), self.s)) * self.penalty_cost
                   - np.sum(np.ceil(action[1:] / self.cap_truck) * self.truck_cost)) # Removed .T after np.ceil, as it was unnecessary -- Luke 19/02
+        info = "Demand was: ", self.demand  # TODO delete or do something -- Droche 15/02
         self.t += 1
         self.update_demand()
         done = 0
-        info = "Demand was: ", self.demand  # TODO delete or do something -- Droche 15/02
         return self.s, reward, done, info
 
     def update_demand(self):
