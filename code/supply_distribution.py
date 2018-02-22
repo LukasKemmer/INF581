@@ -63,7 +63,7 @@ class SupplyDistribution:
         self.t += 1
         self.update_demand()
         done = 0
-        return self.s, reward, done, info
+        return self.s.copy(), reward, done, info
 
     def update_demand(self):
         """
