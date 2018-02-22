@@ -33,7 +33,7 @@ def s_q_policy(state, threshold, reorder_quantity):
         Heuristic based on s_q policy
     '''
     a = np.zeros(len(state))
-    disposable_produce = s[0]
+    disposable_produce = state[0]
     # Set actions for warehouses
     for i in np.arange(1, len(state)):
         # If current stock is below threshold, replenish
