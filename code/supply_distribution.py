@@ -7,9 +7,9 @@ class SupplyDistribution:
     The supply distribution environment
     """
 
-    def __init__(self, n_stores=5, cap_truck=100, prod_cost=1, max_prod=10,
-                 store_cost=np.array([0.01, 0.1, 0.1, 0.1, 0.1, 0.1]), truck_cost=np.array([2, 3, 4, 5, 6]),
-                 cap_store=np.array([500, 25, 25, 25, 25, 25]), penalty_cost=0.3, price=2):
+    def __init__(self, n_stores=3, cap_truck=100, prod_cost=1, max_prod=10,
+                 store_cost=np.array([0.01, 0.1, 0.1, 0.1]), truck_cost=np.array([2, 3, 4]),
+                 cap_store=np.array([20, 5, 5, 5]), penalty_cost=0.3, price=2, gamma=0.95):
         """
         :param n_stores:
         :param cap_truck:
@@ -35,6 +35,7 @@ class SupplyDistribution:
         self.truck_cost = np.array(truck_cost)
         self.penalty_cost = penalty_cost
         # other variables
+        self.gamma = gamma
         self.t = 0
 
         self.reset()
@@ -73,7 +74,7 @@ class SupplyDistribution:
         for i in range(self.n_stores):
             # We need an integer so we use the ceiling because if there is demand then we asume the users will buy
             # what they need and keep the rests. We use around to get an integer out of it.
-            demand[i] = int(np.ceil(30 * np.sin(2 * np.pi * self.t / 365 + i) + 30))
+            demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * self.t / 365 + i) + 1.5))
         self.demand = demand
 
     def action_space(self):
