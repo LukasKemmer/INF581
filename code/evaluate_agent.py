@@ -26,7 +26,7 @@ def print_step(step, state, action, reward, state_new, freq = 100):
 np.random.seed(10107)
 
 # Simulation parameters
-n_episodes = 50000
+n_episodes = 5000
 max_steps = 104 # 2 years = 2 * 52 weeks
 
 # Visualization parameters
@@ -51,11 +51,13 @@ for episode in np.arange(n_episodes):
     if episode % status_freq == 0:
         print("Episode ", episode)
 
-    # Reset environment and episode reward
+    # Reset environment, episode reward and sample random action
     state = env.reset()
     episode_reward = 0
+    #action = env.action_space()[np.random.randint(0, len(env.action_space()))]
     
     for step in np.arange(max_steps):
+        
         # Select an action
         action = agent.get_action(state)
         
