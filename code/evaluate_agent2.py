@@ -27,8 +27,8 @@ def print_step(step, state, action, reward, state_new, freq = 100):
 np.random.seed(10107)
 
 # Simulation parameters
-n_episodes = 5000
-max_steps = 104 # 2 years = 2 * 52 weeks
+n_episodes = 5
+max_steps = 5200 # 100 years = 100 * 52 weeks
 
 # Visualization parameters
 output=True
@@ -39,7 +39,8 @@ print_freq = 1 # Print current step every X episodes
 env = SupplyDistribution()
 
 # Select agent
-agent = q_s_agent(threshold = np.array([10, 3, 3, 3]), reorder_quantity = np.array([11, 3, 3, 3]))
+#agent = q_s_agent(threshold = np.array([10, 3, 3, 3]), reorder_quantity = np.array([11, 3, 3, 3]))
+agent = REINFORCE_agent(4, 3)
 
 # ============================ 2. Evaluate agent ============================ #
 
@@ -52,16 +53,14 @@ for episode in np.arange(n_episodes):
     if episode % status_freq == 0:
         print("Episode ", episode)
 
-    # Reset environment, episode reward and sample random action
+    # Reset environment and episode reward
     state = env.reset()
     episode_reward = 0
-    #action = env.action_space()[np.random.randint(0, len(env.action_space()))]
-    
+    reward = 0
     for step in np.arange(max_steps):
-        
         # Select an action
-        action = agent.get_action(state)
-        print(action)
+        action_space = env.action_space()
+        action = agent.get_action(state,reward,action_space,done=False)
         
         # Update environment
         state_new, reward, done, info = env.step(action)
