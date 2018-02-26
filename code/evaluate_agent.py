@@ -9,6 +9,7 @@ Created on Thu Feb 22 21:15:42 2018
 import numpy as np
 import matplotlib.pyplot as plt
 from q_s_agent import q_s_agent
+from approximate_sarsa import approximate_sarsa_agent
 from supply_distribution import SupplyDistribution
 from reinforce import REINFORCE_agent
 
@@ -27,19 +28,20 @@ def print_step(step, state, action, reward, state_new, freq = 100):
 np.random.seed(10107)
 
 # Simulation parameters
-n_episodes = 5000
+n_episodes = 10
 max_steps = 104 # 2 years = 2 * 52 weeks
 
 # Visualization parameters
-output=True
-status_freq = 1000 # Print status (current episode) every X episodes
+output=False
+status_freq = 1 # Print status (current episode) every X episodes
 print_freq = 1 # Print current step every X episodes
 
-# E
+# Instantiate environment
 env = SupplyDistribution()
 
 # Select agent
-agent = q_s_agent(threshold = np.array([10, 3, 3, 3]), reorder_quantity = np.array([11, 3, 3, 3]))
+#agent = q_s_agent(threshold = np.array([10, 3, 3, 3]), reorder_quantity = np.array([11, 3, 3, 3]))
+agent = approximate_sarsa_agent(env)
 
 # ============================ 2. Evaluate agent ============================ #
 
@@ -52,25 +54,26 @@ for episode in np.arange(n_episodes):
     if episode % status_freq == 0:
         print("Episode ", episode)
 
-    # Reset environment, episode reward and sample random action
+    # Reset environment and episode reward
     state = env.reset()
     episode_reward = 0
-    #action = env.action_space()[np.random.randint(0, len(env.action_space()))]
+    
+    # Select an action
+    action = agent.get_action(state)
     
     for step in np.arange(max_steps):
         
-        # Select an action
-        action = agent.get_action(state)
-        print(action)
-        
         # Update environment
         state_new, reward, done, info = env.step(action)
+        
+        # Select an action
+        action_new = agent.get_action(state)
         
         # Update episode reward
         episode_reward += np.power(env.gamma, step) * reward
         
         # Update agent
-        agent.update(state, action)
+        agent.update(state, action, reward, state_new, action_new)
         
         # Print information
         if output:
@@ -78,6 +81,7 @@ for episode in np.arange(n_episodes):
         
         # Update state
         state = state_new
+        action = action_new
         
     # Add episodes reward to rewards list
     rewards[episode] = episode_reward
