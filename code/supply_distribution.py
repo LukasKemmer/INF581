@@ -78,7 +78,7 @@ class SupplyDistribution:
             demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * self.t / 52 + i) + 1.5 + np.random.randint(0, 2)))
         self.demand = demand
 
-    def action_space(self):
+    def action_space_old(self): # Declared as "old" because in some states it would return an empty state space
         """
         Returns the set of possibles actions that the agent can make
         :return: The posible actions in a list of tuples. Each tuple with (a0, a1, ..., ak) k = n_stores.
@@ -92,6 +92,17 @@ class SupplyDistribution:
             if sum(element[1:]) <= self.s[0]:
                 action_space.append(element)
         return action_space
+
+    def action_space(self): # TODO: check which version of action_space is correct and should be used
+        """
+        Returns the set of possibles actions that the agent can make
+        :return: The posible actions in a list of tuples. Each tuple with (a0, a1, ..., ak) k = n_stores.
+        """
+        feasible_actions = []
+        for element in itertools.product(*[np.arange(0, self.max_prod) for i in np.arange(0, self.n_stores+1)]):
+            if np.sum(element[1:]) <= self.s[0]:
+                feasible_actions.append(element)
+        return np.array(feasible_actions)
 
     def observation_space(self):
         """
