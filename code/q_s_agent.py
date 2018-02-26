@@ -39,7 +39,8 @@ class q_s_agent(object):
 
         return a.astype(np.int)
 
-    def update(self, state, action):
+
+    def update(self, state, action, reward, state_new, action_new):
         '''
             update function not required for q-s-policy
         '''
