@@ -15,12 +15,13 @@ from reinforce import REINFORCE_agent
 
 # ========================= 0. Function definitions ========================= #
 
-def print_step(step, state, action, reward, state_new, freq = 100):
+def print_step(step, state, action, reward, state_new, total_reward, freq = 100):
     print("========= Step: %3s =========" % step)
-    print("State:     ", state)
-    print("Action:    ", action)
-    print("Reward:    ", round(reward, 2))
-    print("Next state:", state_new)
+    print("State:         ", state)
+    print("Action:        ", action)
+    print("Reward:        ", round(reward, 2))
+    print("Next state:    ", state_new)
+    print("Episode reward:", round(total_reward,2))
     
 # ========================== 1. Setting parameters ========================== #
 
@@ -28,11 +29,11 @@ def print_step(step, state, action, reward, state_new, freq = 100):
 np.random.seed(10107)
 
 # Simulation parameters
-n_episodes = 10
+n_episodes = 1
 max_steps = 104 # 2 years = 2 * 52 weeks
 
 # Visualization parameters
-output=False
+output=True
 status_freq = 1 # Print status (current episode) every X episodes
 print_freq = 1 # Print current step every X episodes
 
@@ -74,10 +75,10 @@ for episode in np.arange(n_episodes):
         
         # Update agent
         agent.update(state, action, reward, state_new, action_new)
-        
+
         # Print information
         if output:
-            print_step(step, state, action, reward, state_new, print_freq)
+            print_step(step, state, action, reward, state_new, episode_reward,print_freq)
         
         # Update state
         state = state_new
