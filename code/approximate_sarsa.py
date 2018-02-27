@@ -12,7 +12,7 @@ import numpy as np
 def phi(state, action, prod_cost, price, n_stores):
     # Create helper for parameters
     helper = np.zeros(1+n_stores)
-    helper[0] = -prod_cost
+    helper[0] = price - prod_cost
     helper[1:] = price
     
     # Create helper for result
@@ -38,8 +38,7 @@ def phi(state, action, prod_cost, price, n_stores):
     '''
 
 def update_alpha(alpha):
-    return alpha*0.99
-
+    return alpha*0.9999
 
 class approximate_sarsa_agent(object):
     
@@ -48,14 +47,13 @@ class approximate_sarsa_agent(object):
         self.env = env
         
         # Initialize theta random
-        self.theta = np.random.rand(5) # currently hard coded
-        
+        self.theta = np.ones(env.n_stores+2)#np.random.rand(5) # currently hard coded
+        self.theta /= np.sum(self.theta)
         # Initialize the stepsize alpha
         self.alpha = 0.01
         
         # Initialize environment params
         self.env_params = (env.prod_cost, env.price, env.n_stores)
-    
     
     def get_action(self, state, epsilon=0.1):
         # Find all possible actions
@@ -68,20 +66,16 @@ class approximate_sarsa_agent(object):
         # With probability 1-epsilon, select greedy action
         return actions[np.argmax(np.dot(self.theta, phi(state, actions, *self.env_params)))]        
     
-    
     def update(self, state, action, reward, state_new, action_new):
-        # Find action for next iteration
-        action_new = self.get_action(state)
-
-        # Find calculate delta
+        # Calculate delta
         delta = reward + self.env.gamma * np.dot(self.theta, phi(state_new, action_new, *self.env_params)) - np.dot(self.theta, phi(state, action, *self.env_params))
 
         # Update theta
         self.theta += self.alpha * delta * phi(state, action, *self.env_params)
         
+        # Normalize theta to [0,1] (only relative weights should be important for policy selection)
+        self.theta /= np.sum(self.theta)
+        
         # Update learning rate alpha
         self.alpha = update_alpha(self.alpha)
-        
-        
-        
         
