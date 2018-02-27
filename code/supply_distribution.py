@@ -79,7 +79,7 @@ class SupplyDistribution:
             demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * self.t / 24 + i) + 1.5 + np.random.randint(0, 2)))
         self.demand = demand
 
-    def action_space(self): # TODO: check which version of action_space is correct and should be used
+    def action_space_itertools(self): # TODO: check which version of action_space is correct and should be used
         """
         Returns the set of possibles actions that the agent can make
         :return: The posible actions in a list of tuples. Each tuple with (a0, a1, ..., ak) k = n_stores.
@@ -94,10 +94,35 @@ class SupplyDistribution:
 
         return np.array(feasible_actions)
 
+    def action_space_recur(self):
+        feasible_actions_aux = self.action_space_recur_aux(0, [[]], self.s[0])
+        feasible_actions = []
+        for action in feasible_actions_aux:
+            prod_being_send = sum(action)
+            s_0 = self.s[0] - prod_being_send
+            for production in np.arange(0, min(self.max_prod, self.cap_store[0] - s_0) + 1):
+                feasible_actions.append([production] + action)
+        return np.array(feasible_actions)
+
+    def action_space_recur_aux(self, store_num, current_actions, prod_left):
+        feasible_actions = []
+        if store_num == self.n_stores:
+            return current_actions
+        for prod_being_send in range(0, min(prod_left, self.cap_store[store_num+1] - self.s[store_num+1]) + 1):
+            new_actions = []
+            for action in current_actions:
+                new_action = action + [prod_being_send]
+                new_actions.append(new_action)
+            feasible_actions.extend(self.action_space_recur_aux(store_num+1, new_actions, prod_left - prod_being_send))
+        return feasible_actions
+
+    def action_space(self):
+        return self.action_space_recur()
+
+
     def observation_space(self):
         """
         Used to observe the current state of the environment
         :return:
         """
         return
-    
