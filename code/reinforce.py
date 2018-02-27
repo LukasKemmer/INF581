@@ -30,12 +30,36 @@ class REINFORCE_agent(object):
     def allowed_actions(self):  # returns an array indicating which actions are allowed        
         a_allowed = zeros(self.dim_action)
         action_space = self.env.action_space().tolist()
-        for i in range(self.dim_action ):
-            #if self.discrete2continuous[i]  in  action_space:
-                #a_allowed[i]= 1
-            for act in self.env.action_space():
-                if (self.discrete2continuous[i] == act).all():
-                    a_allowed[i]= 1
+        action_space_aux = []
+        for action in action_space:
+            action_space_aux.append(action[1:] + action[0:1]) #put the first action at the end so it is sorted. because of how it is builded
+        discrete2continuous_aux = []
+        for action in self.discrete2continuous:
+            discrete2continuous_aux.append([*action[1:], action[0]])
+        pointer1 = 0
+        pointer2 = 0
+        while pointer1 < len(action_space_aux) and pointer2 < len(discrete2continuous_aux):
+            np1 = action_space_aux[pointer1]
+            np2 = discrete2continuous_aux[pointer2]
+            if array_equal(np1, np2):
+                a_allowed[pointer2] = 1
+                pointer1 += 1
+                pointer2 += 1
+            elif self.smaller_or_equals(np1, np2):
+                pointer1 += 1
+            else:
+                pointer2 += 1
+
+
+
+
+
+ #       for i in range(self.dim_action ):
+  #          #if self.discrete2continuous[i]  in  action_space:
+  #              #a_allowed[i]= 1
+  #          for act in self.env.action_space():
+  #              if (self.discrete2continuous[i] == act).all():
+  #                  a_allowed[i]= 1
             #if a_allowed[i] == 0:
             #    print("not allowed action: ",self.discrete2continuous[i])
         if(sum(a_allowed)) <1:
@@ -44,7 +68,25 @@ class REINFORCE_agent(object):
             print("my proposed actions", self.discrete2continuous)
            
         return a_allowed
-    
+
+    def smaller_or_equals(self, np1, np2):
+        '''
+        returns if the first np array is smaller than the second
+        :param np1:
+        :param np2:
+        :return:
+        '''
+        if len(np1) != len(np2):
+            print("ERROR! The two np array are not of the same size")
+        for i in range(len(np1)):
+            if np1[i] < np2[i]:
+                return True
+            if np1[i] > np2[i]:
+                return False
+        return True
+
+
+
     
     def choose_action(self, obs, allowed_actions):  # returns one of the allowed actions
         sum_exp = 0
@@ -58,7 +100,7 @@ class REINFORCE_agent(object):
                 sum_exp += exp(dot(obs,self.Theta[:,k]))
                 prob[counter]= exp(dot(obs,self.Theta[:,k]))
                 counter +=1
-        prob = prob/sum_exp 
+        prob = prob/sum_exp
         #print("sum_exp = ", sum_exp )
         #print("probabilities = ", prob)
         #print("sum of probabilities = ", sum(prob))
@@ -66,19 +108,6 @@ class REINFORCE_agent(object):
         return actions_ind[action]
                                        
     def __init__(self,environment, obs_space, action_dim, max_steps): # to do: dim_action/action_space calculation, discretization of action space, especially discrete2continous, set episode length, discrete2continous
-        """
-            Init.
-
-
-            Parameters
-            ----------
-
-            obs_space : BugSpace
-                observation space
-            action_space : BugSpace
-                action space
-
-        """
         self.max_steps = max_steps
         self.env = environment
         self.dim_state = obs_space
@@ -108,7 +137,8 @@ class REINFORCE_agent(object):
             for j in range(available_actions.shape[0]):
                 for k in range(available_actions.shape[0]):
                     for l in range(available_actions.shape[0]):
-                        self.discrete2continuous.append( array([int(available_actions[i,0]), int(available_actions[j,1]), int(available_actions[k,2]), int(available_actions[l,3])]))
+                        self.discrete2continuous.append( array([int(available_actions[l,0]), int(available_actions[i,1]), int(available_actions[j,2]), int(available_actions[k,3])]))
+                        # We use the l for the a0 so we have then ordered by store action and then by production. So i matches the action space order
         print("number of actions: ", len(self.discrete2continuous))
         
 
