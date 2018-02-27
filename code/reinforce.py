@@ -89,11 +89,11 @@ class REINFORCE_agent(object):
         self.Theta = random.randn(self.dim_state+1 , self.dim_action ) * 0.1  # create weightmatrix with columns as vectors for the individual softmax inputs
 
         # The step size for the gradient
-        self.alpha = 0.00001    # has to definitely be updated
+        self.alpha = 0.0001    # has to definitely be updated
 
         # To store an episode
-        self.episode_allowed_actions = zeros((self.max_steps,self.dim_action)) # for storing the allowed episodes
-        self.episode = zeros((self.max_steps,1+self.dim_state+1)) # for storing (a,s,r) 
+        self.episode_allowed_actions = zeros((self.max_steps+1,self.dim_action)) # for storing the allowed episodes
+        self.episode = zeros((self.max_steps+1,1+self.dim_state+1)) # for storing (a,s,r) 
         self.t = 0                                   # for counting 
         
         available_actions = zeros((3,self.env.n_stores+1 ))   # define a matrix that lists the possible actions for each store
@@ -164,12 +164,12 @@ class REINFORCE_agent(object):
         '''
             update function not required for q-s-policy
         '''
-        self.episode[self.t-1,-1] = reward
+        self.episode[self.t-2,-1] = reward
         
         # End of episode ?
-        if self.t == self.max_steps-1:
+        if self.t == self.max_steps+1:
             print("Update:",self.episode )
-            for ts in range(self.t):  
+            for ts in range(self.t-1):  
                 Dt = sum(self.episode[ts:,-1])  # sum up all rewards
                 #print("Dt = ", Dt)
                 action = int(self.episode[ts,0])
@@ -189,8 +189,8 @@ class REINFORCE_agent(object):
                 #print("Theta =", self.Theta)
             # after episode, set everything to zero!
             self.t = 0
-            self.episode_allowed_actions = zeros((self.max_steps,self.dim_action)) # for storing the allowed episodes
-            self.episode = zeros((self.max_steps,1+self.dim_state+1)) # for storing (a,s,r) 
+            self.episode_allowed_actions = zeros((self.max_steps+1,self.dim_action)) # for storing the allowed episodes
+            self.episode = zeros((self.max_steps+1,1+self.dim_state+1)) # for storing (a,s,r) 
         
         return 
 
