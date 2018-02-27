@@ -8,6 +8,7 @@ Created on Sat Feb 24 13:06:37 2018
 from supply_distribution import SupplyDistribution
 import numpy as np
 
+'''
 def phi(state, action, prod_cost, price, n_stores):
     # Create helper for parameters
     parameter_helper = np.zeros(1+n_stores)
@@ -25,6 +26,7 @@ def phi(state, action, prod_cost, price, n_stores):
     # If action is 2d use matrix computation
     result[:, 1:] += (state[1:n_stores+1] - state[n_stores+1:])
     return np.vstack((np.ones(action.shape[0]), (result*parameter_helper).T))
+'''
 
 def phi(state, action, prod_cost, store_cost, price, n_stores):
     # Create helper for parameters
