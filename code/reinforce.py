@@ -27,13 +27,22 @@ class REINFORCE_agent(object):
     '''
         A Policy-Search Method.
     '''
-    def allowed_actions(self,action_space):  # returns an array indicating which actions are allowed        
+    def allowed_actions(self):  # returns an array indicating which actions are allowed        
         a_allowed = zeros(self.dim_action)
+        action_space = self.env.action_space().tolist()
         for i in range(self.dim_action ):
-            if self.discrete2continuous[i]  in  action_space:
-                a_allowed[i]= 1
-        #print("a_allowed =", a_allowed)
-        #print("length of a_allowed = ", len(a_allowed))
+            #if self.discrete2continuous[i]  in  action_space:
+                #a_allowed[i]= 1
+            for act in self.env.action_space():
+                if (self.discrete2continuous[i] == act).all():
+                    a_allowed[i]= 1
+            #if a_allowed[i] == 0:
+            #    print("not allowed action: ",self.discrete2continuous[i])
+        if(sum(a_allowed)) <1:
+            print("Warning we have a low action space!!!!!!!!!")
+            print("action space: ", action_space)
+            print("my proposed actions", self.discrete2continuous)
+           
         return a_allowed
     
     
@@ -56,7 +65,7 @@ class REINFORCE_agent(object):
         action = random.choice(len(prob), size = None, p = prob)
         return actions_ind[action]
                                        
-    def __init__(self, obs_space, action_dim): # to do: dim_action/action_space calculation, discretization of action space, especially discrete2continous, set episode length, discrete2continous
+    def __init__(self,environment, obs_space, action_dim, max_steps): # to do: dim_action/action_space calculation, discretization of action space, especially discrete2continous, set episode length, discrete2continous
         """
             Init.
 
@@ -70,9 +79,11 @@ class REINFORCE_agent(object):
                 action space
 
         """
+        self.max_steps = max_steps
+        self.env = environment
         self.dim_state = obs_space
         # self.dim_action = action_space.shape[0]      # has to be changed to output basically the number of stores
-        self.dim_action = action_dim**obs_space  # number of actions to choose
+        self.dim_action = action_dim**(self.env.n_stores+1)  # number of actions to choose
         
         # set random weights
         self.Theta = random.randn(self.dim_state+1 , self.dim_action ) * 0.1  # create weightmatrix with columns as vectors for the individual softmax inputs
@@ -81,14 +92,13 @@ class REINFORCE_agent(object):
         self.alpha = 0.00001    # has to definitely be updated
 
         # To store an episode
-        T = 52                                       # length of episode  -- we might have to set this to 365
-        self.episode_allowed_actions = zeros((T,self.dim_action)) # for storing the allowed episodes
-        self.episode = zeros((T,1+self.dim_state+1)) # for storing (a,s,r) 
+        self.episode_allowed_actions = zeros((self.max_steps,self.dim_action)) # for storing the allowed episodes
+        self.episode = zeros((self.max_steps,1+self.dim_state+1)) # for storing (a,s,r) 
         self.t = 0                                   # for counting 
         
-        available_actions = zeros((3,self.dim_state))   # define a matrix that lists the possible actions for each store
+        available_actions = zeros((3,self.env.n_stores+1 ))   # define a matrix that lists the possible actions for each store
         available_actions[:,0] = [0,4,8]               # warehouse can produce more 0,5 or 10
-        for i in range(self.dim_state-1):
+        for i in range(self.env.n_stores):
             available_actions[:,i+1] = [0,1,2]          # shops can order 0,1 or 2 
         
         # Discretize the action space: compute all action combinations
@@ -98,11 +108,12 @@ class REINFORCE_agent(object):
             for j in range(available_actions.shape[0]):
                 for k in range(available_actions.shape[0]):
                     for l in range(available_actions.shape[0]):
-                        self.discrete2continuous.append( (int(available_actions[i,0]), int(available_actions[j,1]), int(available_actions[k,2]), int(available_actions[l,3])))
+                        self.discrete2continuous.append( array([int(available_actions[i,0]), int(available_actions[j,1]), int(available_actions[k,2]), int(available_actions[l,3])]))
         print("number of actions: ", len(self.discrete2continuous))
         
 
-    def get_action(self,obs,reward,action_space,done=False):
+    def get_action(self,obs):
+    #def get_action(self,obs,reward,action_space,done=False):
         """
             Act.
 
@@ -120,19 +131,44 @@ class REINFORCE_agent(object):
             numpy array
                 the action to take
         """
+        
         # Save some info to a episode
         self.episode[self.t,1:self.dim_state+1] = obs   # set observations in log
-        self.episode[self.t,-1] = reward
 
+        
         # save the allowed actions for that state
-        allowed_actions = self.allowed_actions(action_space)
+        allowed_actions = self.allowed_actions()
         self.episode_allowed_actions[self.t,:] = allowed_actions
 
-        # End of episode ?
-        T = len(self.episode)
+        
         self.t = self.t + 1
-        if self.t >= T:
-            # update Theta.               
+        
+        x = ones(self.dim_state + 1)
+        x[1:] = obs   
+        
+        # choose new action:
+        action = int(self.choose_action( x, allowed_actions ))
+        
+        # Save some info to a episode
+        self.episode[self.t-1,0] = action
+
+        # Return the action to take
+        return array(self.discrete2continuous[action])
+
+    def __str__(self):
+        ''' Return a string representation (e.g., a label) for this agent '''
+        # This will appear as label when we click on the bug in ALife
+        return ("RF. alpha=%3.2f" % (self.alpha))
+    
+    def update(self,state, action, reward, state_new, action_new):
+        '''
+            update function not required for q-s-policy
+        '''
+        self.episode[self.t-1,-1] = reward
+        
+        # End of episode ?
+        if self.t == self.max_steps-1:
+            print("Update:",self.episode )
             for ts in range(self.t):  
                 Dt = sum(self.episode[ts:,-1])  # sum up all rewards
                 #print("Dt = ", Dt)
@@ -151,28 +187,11 @@ class REINFORCE_agent(object):
                     if self.episode_allowed_actions[ts,i] == 1:   # we don't update the policy if the action is not allowed
                         self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad  * Dt  
                 #print("Theta =", self.Theta)
+            # after episode, set everything to zero!
             self.t = 0
-
-        x = ones(self.dim_state + 1)
-        x[1:] = obs        
-        # choose new action:
-        action = int(self.choose_action( x, allowed_actions ))
+            self.episode_allowed_actions = zeros((self.max_steps,self.dim_action)) # for storing the allowed episodes
+            self.episode = zeros((self.max_steps,1+self.dim_state+1)) # for storing (a,s,r) 
         
-        # Save some info to a episode
-        self.episode[self.t,0] = action
-
-        # Return the action to take
-        return array(self.discrete2continuous[action])
-
-    def __str__(self):
-        ''' Return a string representation (e.g., a label) for this agent '''
-        # This will appear as label when we click on the bug in ALife
-        return ("RF. alpha=%3.2f" % (self.alpha))
-    
-    def update(self, state, action):
-        '''
-            update function not required for q-s-policy
-        '''
         return 
 
 
