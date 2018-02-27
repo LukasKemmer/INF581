@@ -97,4 +97,5 @@ for episode in np.arange(n_episodes):
 # Output results
 print("Average reward: ", round(np.mean(rewards),2))
 plt.plot(rewards)
-plt.hist(rewards, normed=True)
+#plt.plot(agent.stepsizes)
+#plt.hist(rewards, normed=True)
