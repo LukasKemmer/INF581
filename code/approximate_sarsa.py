@@ -8,34 +8,41 @@ Created on Sat Feb 24 13:06:37 2018
 from supply_distribution import SupplyDistribution
 import numpy as np
 
-
 def phi(state, action, prod_cost, price, n_stores):
     # Create helper for parameters
-    helper = np.zeros(1+n_stores)
-    helper[0] = price - prod_cost
-    helper[1:] = price
+    parameter_helper = np.zeros(1+n_stores)
+    parameter_helper[0] = price - prod_cost
+    parameter_helper[1:] = price
     
-    # Create helper for result
+    # Create variable for result
     result = action.copy()
 
     # If action is 1d use simple computation
     if action.ndim == 1:
-        result[1:] += (state[1:n_stores+1] - state[n_stores+1:])
-        return np.hstack((1, result*helper))
+        result[1:] += state[1:n_stores+1] - state[n_stores+1:]
+        return np.hstack((1, result*parameter_helper))
     
     # If action is 2d use matrix computation
     result[:, 1:] += (state[1:n_stores+1] - state[n_stores+1:])
-    return np.vstack((np.ones(action.shape[0]), (result*helper).T))
+    return np.vstack((np.ones(action.shape[0]), (result*parameter_helper).T))
 
-    '''
-    # If action is one-dimensional return hstack of state and action
+def phi(state, action, prod_cost, store_cost, price, n_stores):
+    # Create helper for parameters
+    parameter_helper = np.zeros(1+n_stores)
+    parameter_helper[0] = price - prod_cost -store_cost[0]
+    parameter_helper[1:] = price - store_cost[1:]
+    
+    # Create variable for result
+    result = action.copy()
+
+    # If action is 1d use simple computation
     if action.ndim == 1:
-        return np.hstack((state, action))
-
-    # If matrix with multiple actions is entered, return matrix stack
-    helper = np.array([state for i in np.arange(action.shape[0])])
-    return np.vstack((helper.T, action.T))
-    '''
+        result[1:] += state[1:n_stores+1] - state[n_stores+1:]
+        return np.hstack((1, result*parameter_helper))
+    
+    # If action is 2d use matrix computation
+    result[:, 1:] += (state[1:n_stores+1] - state[n_stores+1:])
+    return np.vstack((np.ones(action.shape[0]), (result*parameter_helper).T))
 
 def update_alpha(alpha):
     return alpha*0.9999
@@ -50,10 +57,11 @@ class approximate_sarsa_agent(object):
         self.theta = np.ones(env.n_stores+2)#np.random.rand(5) # currently hard coded
         self.theta /= np.sum(self.theta)
         # Initialize the stepsize alpha
-        self.alpha = 0.01
+        self.alpha = 0.02
         
         # Initialize environment params
-        self.env_params = (env.prod_cost, env.price, env.n_stores)
+        #self.env_params = (env.prod_cost, env.price, env.n_stores)
+        self.env_params = (env.prod_cost, env.store_cost, env.price, env.n_stores)
     
     def get_action(self, state, epsilon=0.1):
         # Find all possible actions
