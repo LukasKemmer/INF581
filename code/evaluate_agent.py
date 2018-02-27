@@ -29,11 +29,11 @@ def print_step(step, state, action, reward, state_new, total_reward, freq = 100)
 np.random.seed(10107)
 
 # Simulation parameters
-n_episodes = 10000
+n_episodes = 1000
 max_steps = 52 # 2 years = 52 * 2 weeks ( 2 week steps )
 
 # Visualization parameters
-output=1
+output=0
 status_freq = 10 # Print status (current episode) every X episodes
 print_freq = 1 # Print current step every X episodes
 
@@ -48,8 +48,8 @@ env = SupplyDistribution(n_stores=3, cap_truck=100, prod_cost=1, max_prod=10,
 
 # Select agent
 #agent = q_s_agent(threshold = np.array([10, 3, 3, 3]), reorder_quantity = np.array([11, 3, 3, 3]))
-#agent = approximate_sarsa_agent(env)
-agent = REINFORCE_agent(env,7,3, max_steps)
+agent = approximate_sarsa_agent(env)
+#agent = REINFORCE_agent(env,7,3, max_steps)
 
 # ============================ 2. Evaluate agent ============================ #
 
