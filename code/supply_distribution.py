@@ -1,6 +1,6 @@
 import numpy as np
+import numba as nb
 import itertools
-
 
 class SupplyDistribution:
     """
@@ -99,7 +99,7 @@ class SupplyDistribution:
         :return: The posible actions in a list of tuples. Each tuple with (a0, a1, ..., ak) k = n_stores.
         """
         feasible_actions = []
-        for element in itertools.product(*[np.arange(0, self.max_prod) for i in np.arange(0, self.n_stores+1)]):
+        for element in itertools.product(*[np.arange(0, np.min(s[0], self.cap_store[i])) for i in np.arange(0, self.n_stores+1)]):
             if np.sum(element[1:]) <= self.s[0]:
                 feasible_actions.append(element)
         return np.array(feasible_actions)
@@ -110,5 +110,3 @@ class SupplyDistribution:
         :return:
         """
         return
-    
-    
