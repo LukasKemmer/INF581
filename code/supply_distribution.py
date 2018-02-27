@@ -9,7 +9,7 @@ class SupplyDistribution:
 
     def __init__(self, n_stores=3, cap_truck=100, prod_cost=1, max_prod=10,
                  store_cost=np.array([0.01, 0.1, 0.1, 0.1]), truck_cost=np.array([2, 3, 4]),
-                 cap_store=np.array([20, 5, 5, 5]), penalty_cost=0.3, price=5, gamma=0.95):
+                 cap_store=np.array([20, 5, 5, 5]), penalty_cost=1, price=5, gamma=0.95):
         """
         :param n_stores:
         :param cap_truck:
@@ -49,7 +49,7 @@ class SupplyDistribution:
         self.s[0] = 5
         self.demand = np.zeros(self.n_stores, dtype=int)
         self.t = 0
-        return self.s.copy()
+        return np.hstack((self.s.copy(), self.demand.copy()))
 
     def step(self, action):  # TODO Check np.array * -- Droche 15/02
         self.s[0] = min(self.s[0] + action[0] - sum(action[1:]), self.cap_store[0])
@@ -57,13 +57,13 @@ class SupplyDistribution:
         reward = (sum(self.demand) * self.price
                   - action[0] * self.prod_cost
                   - np.sum(np.maximum(np.zeros(len(self.s)), self.s) * self.store_cost)
-                  - np.sum(np.minimum(np.zeros(len(self.s)), self.s)) * self.penalty_cost
+                  + np.sum(np.minimum(np.zeros(len(self.s)), self.s)) * self.penalty_cost # Changed to + so that penalty cost actually decrease reward -- Luke 26/02
                   - np.sum(np.ceil(action[1:] / self.cap_truck) * self.truck_cost)) # Removed .T after np.ceil, as it was unnecessary -- Luke 19/02
         info = "Demand was: ", self.demand  # TODO delete or do something -- Droche 15/02
         self.t += 1
         self.update_demand()
         done = 0
-        return self.s.copy(), reward, done, info
+        return np.hstack((self.s.copy(), self.demand.copy())), reward, done, info
 
     def update_demand(self):
         """
@@ -110,4 +110,5 @@ class SupplyDistribution:
         :return:
         """
         return
-
+    
+    
