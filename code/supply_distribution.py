@@ -76,7 +76,7 @@ class SupplyDistribution:
         for i in range(self.n_stores):
             # We need an integer so we use the ceiling because if there is demand then we asume the users will buy
             # what they need and keep the rests. We use around to get an integer out of it.
-            demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * self.t / 24 + i) + 1.5 + np.random.randint(0, 2)))
+            demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * self.t / 24 + 4i) + 1.5 + np.random.randint(0, 2)))
         self.demand = demand
 
     def action_space_itertools(self): # TODO: check which version of action_space is correct and should be used
