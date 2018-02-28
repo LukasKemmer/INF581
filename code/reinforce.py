@@ -100,43 +100,45 @@ class REINFORCE_agent(object):
 
         return True
 
-    def choose_action(self, obs, allowed_actions):  # returns one of the allowed actions
+    def choose_action(self, obs, allowed_actions, epsilon= 0.5):  # returns one of the allowed actions
         sum_exp = 0
         count_allowed_a = int(sum(allowed_actions))        
-        prob = zeros(count_allowed_a)
-        
+        prob = zeros(count_allowed_a)        
         actions_ind = zeros(count_allowed_a)   # keep an array of all allowed actions
         dotproduct   = zeros(count_allowed_a)  # save an array with the computed dotproduct of theta and obs
-        # calculate a correction factor as the biggest value in 
         counter= 0
         for k in range(self.Theta.shape[1]):
             if allowed_actions[k]==1:
                 actions_ind[counter]=k             
                 dotproduct[counter] = dot(obs,self.Theta[:,k])
                 counter +=1
-                
-        correction = max(dotproduct)        
-        #print("actions_ind", actions_ind)
-        # correction = max(self.correction[actions_ind.astype(int)])
-        #print("correction = ", correction )
-        counter= 0
-        for k in actions_ind:
-            #sum_exp += exp(dot(obs,self.Theta[:,k]) - correction)
-            prob[counter]= exp(dotproduct[counter] - correction)
-            counter +=1        
-        if sum(prob) > 10000000 or sum(prob) < 0.0000001:
-            print("Warning : sum_exp = ", sum_exp )
-        prob = prob/sum(prob)
-        # print("sum_exp = ", sum_exp )
-        # prob = prob/sum_exp 
+        # epsilon greedy        
+        if random.rand() < epsilon:
+            action = random.choice(len(prob), size = None)
+        else:        
+            correction = max(dotproduct)        
 
-        #print("probabilities = ", prob)
-        #print("sum of probabilities = ", sum(prob))
-        action = random.choice(len(prob), size = None, p = prob)
+            counter= 0
+            for k in actions_ind:
+                prob[counter]= exp(dotproduct[counter] - correction)
+                counter +=1        
+            if sum(prob) > 10000000 or sum(prob) < 0.0000001:
+                print("Warning : sum_exp = ", sum_exp )
+            prob = prob/sum(prob)
+            
+                
+            action = random.choice(len(prob), size = None, p = prob)
+            if action != argmax(prob):
+                print("Warning, not the action with the highest probability was chosen.")
+                print(action, argmax(prob))
+                
+            # try argmax policy
+            action = argmax(prob)
         return actions_ind[action]
                                        
     def __init__(self,environment, obs_space, action_dim, max_steps): # to do: dim_action/action_space calculation, discretization of action space, especially discrete2continous, set episode length, discrete2continous
         
+        self.epsilon = 1
         self.t0 = time.time()
         self.timeforallowedact = 0
         self.max_steps = max_steps
@@ -149,7 +151,7 @@ class REINFORCE_agent(object):
         self.Theta = random.randn(self.dim_state+1 , self.dim_action ) * 0.1  # create weightmatrix with columns as vectors for the individual softmax inputs
 
         # The step size for the gradient
-        self.alpha = 0.0001    # has to definitely be updated
+        self.alpha = 0.001    # has to definitely be updated
 
         # To store an episode
         self.episode_allowed_actions = zeros((self.max_steps+1,self.dim_action)) # for storing the allowed episodes
@@ -157,9 +159,9 @@ class REINFORCE_agent(object):
         self.t = 0                                   # for counting 
         
         available_actions = zeros((3,self.env.n_stores+1 ))   # define a matrix that lists the possible actions for each store
-        available_actions[:,0] = [0,self.env.max_prod/2,self.env.max_prod]
+        available_actions[:,0] = [0,int(self.env.max_prod/2),self.env.max_prod]
         for i in range(self.env.n_stores):
-            available_actions[:,i+1] = [0,self.env.cap_truck/2,self.env.cap_truck]
+            available_actions[:,i+1] = [0,self.env.cap_truck,self.env.cap_truck*2]
         
         # Discretize the action space: compute all action combinations
         self.discrete2continuous = []
@@ -222,7 +224,7 @@ class REINFORCE_agent(object):
         x[1:] = obs   
         
         # choose new action:
-        action = int(self.choose_action( x, allowed_actions ))
+        action = int(self.choose_action( x, allowed_actions, self.epsilon ))
         
         # Save some info to a episode
         self.episode[self.t-1,0] = action
@@ -236,35 +238,37 @@ class REINFORCE_agent(object):
         return ("RF. alpha=%3.2f" % (self.alpha))
     
     def update(self,state, action, reward, state_new, action_new):
-        '''
-            update function not required for q-s-policy
-        '''
-            
+        
         self.episode[self.t-2,-1] = reward
         
         # End of episode ?
         if self.t == self.max_steps+1:
+            
+            self.epsilon = self.epsilon * 0.999 # change epsilon parameter
             #print("Update:",self.episode )
             tupdate = time.time()
+            grad = zeros(( self.dim_action, self.dim_state + 1 ))
             for ts in range(self.t-1):  
                 Dt = sum(self.episode[ts:,-1])  # sum up all rewards
-                #print("Dt = ", Dt)
                 action = int(self.episode[ts,0])
-                #print("action at ts=", ts,  " is ", action)
+                
                 x = ones(self.dim_state + 1)
                 x[1:] = self.episode[ts,1:-1]
                 softmaxvalue = softmax(self.Theta,x,action)
                 for i in range(self.dim_action): # update every column in Theta individually
                     # Add the bias term (for our model)  
                     if i == action:  # different gradient for the weight of the action that was performed                         
-                        grad = (1 - softmaxvalue) * x
+                        grad[i,:] = grad[i,:] + (1 - softmaxvalue) * x
                         #print("for i equal to j: grad = ", grad)
                     else:                        
-                        grad = - softmaxvalue * x
+                        grad[i,:] = grad[i,:] - softmaxvalue * x
                         #print("for i not equal to j: grad = ", grad)
                     #if self.episode_allowed_actions[ts,i] == 1:   # we don't update the policy if the action is not allowed
-                    self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad  * Dt 
-                #print("Theta =", self.Theta)
+            #print("Theta 1 before is : ", self.Theta[:,1])
+            #print("gradientsum = ", sum(sum(grad)))
+            for i in range(self.dim_action):
+                self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad[i,:]  * Dt 
+            #print("Theta 2 after is : ", self.Theta[:,2])
             # after episode, set everything to zero!
             self.t = 0
             self.episode_allowed_actions = zeros((self.max_steps+1,self.dim_action)) # for storing the allowed episodes

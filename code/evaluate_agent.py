@@ -26,22 +26,22 @@ def print_step(step, state, action, reward, state_new, total_reward, freq = 100)
 # ========================== 1. Setting parameters ========================== #
 
 # Set seed
-np.random.seed(10107)
+np.random.seed(10108)
 
 # Simulation parameters
-n_episodes = 1000
-max_steps = 52 # 2 years = 52 * 2 weeks ( 2 week steps )
+n_episodes = 5000
+max_steps = 13 # 2 years = 52 * 2 weeks ( 2 week steps )
 
 # Visualization parameters
-output=0
+output=1
 status_freq = 10 # Print status (current episode) every X episodes
-print_freq = 1 # Print current step every X episodes
+print_freq = 1000 # Print current step every X episodes
 
 # Instantiate environment
-env = SupplyDistribution(n_stores=3, cap_truck=3, prod_cost=1, max_prod=8,
-                 store_cost=np.array([0.1, 0.5, 0.5, 0.5]), 
-                 truck_cost=np.array([1, 2, 3]),
-                 cap_store=np.array([20, 5, 5, 5]), 
+env = SupplyDistribution(n_stores=3, cap_truck=3, prod_cost=0, max_prod=16,
+                 store_cost=np.array([0, 0, 0, 0]), 
+                 truck_cost=np.array([0, 0, 0]),
+                 cap_store=np.array([30, 5, 5, 5]), 
                  penalty_cost=2, price=4, gamma=0.90)
 
 # Select agent
@@ -81,7 +81,7 @@ for episode in np.arange(n_episodes):
         agent.update(state, action, reward, state_new, action_new)
 
         # Print information
-        if output:
+        if output and episode % print_freq == 0:
             print_step(step, state, action, reward, state_new, episode_reward,print_freq)
         
         # Update state
@@ -96,5 +96,5 @@ for episode in np.arange(n_episodes):
 # Output results
 print("Average reward: ", round(np.mean(rewards),2))
 plt.plot(rewards)
-plt.plot(agent.stepsizes)
+#plt.plot(agent.stepsizes)
 plt.hist(rewards, normed=True)
