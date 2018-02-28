@@ -34,21 +34,19 @@ max_steps = 52 # 2 years = 52 * 2 weeks ( 2 week steps )
 
 # Visualization parameters
 output=0
-status_freq = 10 # Print status (current episode) every X episodes
+status_freq = 1 # Print status (current episode) every X episodes
 print_freq = 1 # Print current step every X episodes
 
 # Instantiate environment
-store_cost = np.array([0.01, 0.1, 0.1, 0.1], dtype=np.float32)
-truck_cost = np.array([2, 3, 4], dtype=np.float32)
-cap_store=np.array([20, 5, 5, 5], dtype=np.int32)
-
-env = SupplyDistribution(n_stores=3, cap_truck=100, prod_cost=1, max_prod=10,
-                 store_cost=store_cost, truck_cost=truck_cost,
-                 cap_store=cap_store, penalty_cost=1, price=5, gamma=0.9)
+env = SupplyDistribution(n_stores=3, cap_truck=3, prod_cost=1, max_prod=8,
+                 store_cost=np.array([0.1, 0.5, 0.5, 0.5]), 
+                 truck_cost=np.array([1, 2, 3]),
+                 cap_store=np.array([20, 5, 5, 5]), 
+                 penalty_cost=2, price=4, gamma=0.90)
 
 # Select agent
-#agent = q_s_agent(threshold = np.array([10, 3, 3, 3]), reorder_quantity = np.array([11, 3, 3, 3]))
-agent = approximate_sarsa_agent(env)
+agent = q_s_agent(threshold = np.array([12, 3, 3, 3]), reorder_quantity = np.array([8, 3, 3, 3]))
+#agent = approximate_sarsa_agent(env)
 #agent = REINFORCE_agent(env,7,3, max_steps)
 
 # ============================ 2. Evaluate agent ============================ #
@@ -71,7 +69,7 @@ for episode in np.arange(n_episodes):
         
         # Update environment
         state_new, reward, done, info = env.step(action)
-        
+
         # Select a new action
         action_new = agent.get_action(state_new)
         
