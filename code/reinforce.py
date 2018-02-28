@@ -12,14 +12,17 @@ def softmax_vec(z):  # computes the whole vector
 def softmax(Theta, obs, index):  # computes an entry of the softmax corresponding to the action(index)
     ''' The softmax activation function '''
     sum_exp = 0
+    dotprod = zeros(Theta.shape[1])
     for k in range(Theta.shape[1]):
-        sum_exp += exp(dot(obs,Theta[:,k]) )
+        dotprod[k] = dot(obs,Theta[:,k])
+        
+    correction = max(dotprod)
+    
+    for k in range(Theta.shape[1]):
+        sum_exp += exp(dotprod[k] - correction )
     if sum_exp == float('+inf'):
         print("sum_exp is infinity !!!! ", sum_exp)
-    # Keep some exploration open, by clipping the values going into the sigmoid    
-    #a = clip(a, -3, 3)
-    # print("softmax = ",exp(dot(obs,Theta[:,index]))/ sum_exp)
-    return exp(dot(obs,Theta[:,index]))/ sum_exp
+    return exp(dotprod[index] - correction )/ sum_exp
 
     
 
@@ -30,7 +33,7 @@ class REINFORCE_agent(object):
     '''
     def allowed_actions(self):  # returns an array indicating which actions are allowed        
         a_allowed = zeros(self.dim_action)
-<<<<<<< Updated upstream
+
         action_space = self.env.action_space().tolist()
         pointer1 = 0
         pointer2 = 0
@@ -46,27 +49,21 @@ class REINFORCE_agent(object):
             else:
                 pointer2 += 1
 
-# TODO delete this code -- Droche 28/02
- #       for i in range(self.dim_action ):
-  #          #if self.discrete2continuous[i]  in  action_space:
-  #              #a_allowed[i]= 1
-  #          for act in self.env.action_space():
-  #              if (self.discrete2continuous[i] == act).all():
-  #                  a_allowed[i]= 1
-=======
-        action_space = self.env.action_space()
-        for i in range(self.dim_action ):
+        #action_space = self.env.action_space()
+        #for i in range(self.dim_action ):
             #if self.discrete2continuous[i]  in  action_space:
                 #a_allowed[i]= 1
-            for act in action_space:
-                if (self.discrete2continuous[i] == act).all():
-                    a_allowed[i]= 1
+           # for act in action_space:
+               # if (self.discrete2continuous[i] == act).all():
+                   # a_allowed[i]= 1
                     
             #if action_space.__contains__(self.discrete2continuous[i]):
                 #a_allowed[i]= 1
->>>>>>> Stashed changes
             #if a_allowed[i] == 0:
             #    print("not allowed action: ", self.discrete2continuous[i])
+        #for i in range(len(a_allowed)):
+        #    if a_allowed[i] == 0:
+        #        print("Not allowed actions is: ", self.discrete2continuous[i])
         if(sum(a_allowed)) <1:
             print("Warning we have a low action space!!!!!!!!!")
             print("action space: ", action_space)
@@ -95,29 +92,44 @@ class REINFORCE_agent(object):
 
         return True
 
-
-
-    
     def choose_action(self, obs, allowed_actions):  # returns one of the allowed actions
         sum_exp = 0
-        count_allowed_a = int(sum(allowed_actions))
-        actions_ind = zeros(count_allowed_a)   # keep an array of all allowed actions
+        count_allowed_a = int(sum(allowed_actions))        
         prob = zeros(count_allowed_a)
+        
+        actions_ind = zeros(count_allowed_a)   # keep an array of all allowed actions
+        dotproduct   = zeros(count_allowed_a)  # save an array with the computed dotproduct of theta and obs
+        # calculate a correction factor as the biggest value in 
         counter= 0
         for k in range(self.Theta.shape[1]):
             if allowed_actions[k]==1:
-                actions_ind[counter]=k
-                sum_exp += exp(dot(obs,self.Theta[:,k]))
-                prob[counter]= exp(dot(obs,self.Theta[:,k]))
+                actions_ind[counter]=k             
+                dotproduct[counter] = dot(obs,self.Theta[:,k])
                 counter +=1
-        prob = prob/sum_exp
-        #print("sum_exp = ", sum_exp )
+                
+        correction = max(dotproduct)        
+        #print("actions_ind", actions_ind)
+        # correction = max(self.correction[actions_ind.astype(int)])
+        #print("correction = ", correction )
+        counter= 0
+        for k in actions_ind:
+            #sum_exp += exp(dot(obs,self.Theta[:,k]) - correction)
+            prob[counter]= exp(dotproduct[counter] - correction)
+            counter +=1        
+        if sum(prob) > 10000000 or sum(prob) < 0.0000001:
+            print("Warning : sum_exp = ", sum_exp )
+        prob = prob/sum(prob)
+        # print("sum_exp = ", sum_exp )
+        # prob = prob/sum_exp 
+
         #print("probabilities = ", prob)
         #print("sum of probabilities = ", sum(prob))
         action = random.choice(len(prob), size = None, p = prob)
         return actions_ind[action]
                                        
     def __init__(self,environment, obs_space, action_dim, max_steps): # to do: dim_action/action_space calculation, discretization of action space, especially discrete2continous, set episode length, discrete2continous
+        
+        self.t0 = time.time()
         self.max_steps = max_steps
         self.env = environment
         self.dim_state = obs_space
@@ -149,8 +161,7 @@ class REINFORCE_agent(object):
                     for l in range(available_actions.shape[0]):
                         self.discrete2continuous.append( array([int(available_actions[l,0]), int(available_actions[i,1]), int(available_actions[j,2]), int(available_actions[k,3])]))
                         # We use the l for the a0 so we have then ordered by store action and then by production. So it matches the action space order
-        print("number of actions: ", len(self.discrete2continuous))
-        
+
 
     def get_action(self,obs):
     #def get_action(self,obs,reward,action_space,done=False):
@@ -178,8 +189,8 @@ class REINFORCE_agent(object):
         
         # save the allowed actions for that state
         allowed_actions = self.allowed_actions()
-        self.episode_allowed_actions[self.t,:] = allowed_actions
 
+        self.episode_allowed_actions[self.t,:] = allowed_actions
         
         self.t = self.t + 1
         
@@ -209,7 +220,7 @@ class REINFORCE_agent(object):
         
         # End of episode ?
         if self.t == self.max_steps+1:
-            print("Update:",self.episode )
+            #print("Update:",self.episode )
             for ts in range(self.t-1):  
                 Dt = sum(self.episode[ts:,-1])  # sum up all rewards
                 #print("Dt = ", Dt)
@@ -220,15 +231,13 @@ class REINFORCE_agent(object):
                 for i in range(self.dim_action): # update every column in Theta individually
                     # Add the bias term (for our model)  
                     if i == action:  # different gradient for the weight of the action that was performed                         
-                        grad = (1 - softmax(self.Theta,x,action,self.correction[i])) * x
+                        grad = (1 - softmax(self.Theta,x,action)) * x
                         #print("for i equal to j: grad = ", grad)
                     else:                        
-                        grad = - softmax(self.Theta,x,action,self.correction[i]) * x
+                        grad = - softmax(self.Theta,x,action) * x
                         #print("for i not equal to j: grad = ", grad)
-                    if self.episode_allowed_actions[ts,i] == 1:   # we don't update the policy if the action is not allowed
-                        self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad  * Dt 
-                        if dot(self.Theta[:,i],x ) > self.correction[i]:  # update the correction factor
-                            self.correction[i] = dot(self.Theta[:,i],x )
+                    #if self.episode_allowed_actions[ts,i] == 1:   # we don't update the policy if the action is not allowed
+                    self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad  * Dt 
                 #print("Theta =", self.Theta)
             # after episode, set everything to zero!
             self.t = 0
