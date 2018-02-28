@@ -30,30 +30,21 @@ class REINFORCE_agent(object):
     def allowed_actions(self):  # returns an array indicating which actions are allowed        
         a_allowed = zeros(self.dim_action)
         action_space = self.env.action_space().tolist()
-        action_space_aux = []
-        for action in action_space:
-            action_space_aux.append(action[1:] + action[0:1]) #put the first action at the end so it is sorted. because of how it is builded
-        discrete2continuous_aux = []
-        for action in self.discrete2continuous:
-            discrete2continuous_aux.append([*action[1:], action[0]])
         pointer1 = 0
         pointer2 = 0
-        while pointer1 < len(action_space_aux) and pointer2 < len(discrete2continuous_aux):
-            np1 = action_space_aux[pointer1]
-            np2 = discrete2continuous_aux[pointer2]
+        while pointer1 < len(action_space) and pointer2 < len(self.discrete2continuous):
+            np1 = action_space[pointer1]
+            np2 = self.discrete2continuous[pointer2]
             if array_equal(np1, np2):
                 a_allowed[pointer2] = 1
                 pointer1 += 1
                 pointer2 += 1
-            elif self.smaller_or_equals(np1, np2):
+            elif self.smaller_or_equals_for_action_space(np1, np2):
                 pointer1 += 1
             else:
                 pointer2 += 1
 
-
-
-
-
+# TODO delete this code -- Droche 28/02
  #       for i in range(self.dim_action ):
   #          #if self.discrete2continuous[i]  in  action_space:
   #              #a_allowed[i]= 1
@@ -69,20 +60,25 @@ class REINFORCE_agent(object):
            
         return a_allowed
 
-    def smaller_or_equals(self, np1, np2):
+    def smaller_or_equals_for_action_space(self, np1, np2):
         '''
-        returns if the first np array is smaller than the second
+        returns if the first np array is smaller than the second using [1:] order and then checking [0] because of the order in action space
         :param np1:
         :param np2:
         :return:
         '''
         if len(np1) != len(np2):
             print("ERROR! The two np array are not of the same size")
-        for i in range(len(np1)):
+        for i in range(1, len(np1)):
             if np1[i] < np2[i]:
                 return True
             if np1[i] > np2[i]:
                 return False
+        if np1[0] < np2[0]:
+            return True
+        if np1[0] > np2[0]:
+            return False
+
         return True
 
 
@@ -138,7 +134,7 @@ class REINFORCE_agent(object):
                 for k in range(available_actions.shape[0]):
                     for l in range(available_actions.shape[0]):
                         self.discrete2continuous.append( array([int(available_actions[l,0]), int(available_actions[i,1]), int(available_actions[j,2]), int(available_actions[k,3])]))
-                        # We use the l for the a0 so we have then ordered by store action and then by production. So i matches the action space order
+                        # We use the l for the a0 so we have then ordered by store action and then by production. So it matches the action space order
         print("number of actions: ", len(self.discrete2continuous))
         
 
