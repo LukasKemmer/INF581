@@ -29,12 +29,12 @@ def print_step(step, state, action, reward, state_new, total_reward, freq = 100)
 np.random.seed(10107)
 
 # Simulation parameters
-n_episodes = 20
+n_episodes = 1000
 max_steps = 52 # 2 years = 52 * 2 weeks ( 2 week steps )
 
 # Visualization parameters
-output=1
-status_freq = 1 # Print status (current episode) every X episodes
+output=0
+status_freq = 10 # Print status (current episode) every X episodes
 print_freq = 1 # Print current step every X episodes
 
 # Instantiate environment
@@ -96,5 +96,5 @@ for episode in np.arange(n_episodes):
 # Output results
 print("Average reward: ", round(np.mean(rewards),2))
 plt.plot(rewards)
-#plt.plot(agent.stepsizes)
-#plt.hist(rewards, normed=True)
+plt.plot(agent.stepsizes)
+plt.hist(rewards, normed=True)

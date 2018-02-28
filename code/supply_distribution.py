@@ -133,7 +133,6 @@ class SupplyDistribution:
     def action_space(self):
         return self.action_space_recur()
 
-
     def observation_space(self):
         """
         Used to observe the current state of the environment

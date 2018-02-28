@@ -34,21 +34,28 @@ class REINFORCE_agent(object):
     '''
     def allowed_actions(self):  # returns an array indicating which actions are allowed        
         a_allowed = zeros(self.dim_action)
+        for i in range(self.dim_action):
+            if self.possible_action(self.discrete2continuous[i]):
+                a_allowed[i] = 1
+        #a_allowed = self.is_possible_action(self.discrete2continuous)
 
-        action_space = self.env.action_space().tolist()
-        pointer1 = 0
-        pointer2 = 0
-        while pointer1 < len(action_space) and pointer2 < len(self.discrete2continuous):
-            np1 = action_space[pointer1]
-            np2 = self.discrete2continuous[pointer2]
-            if array_equal(np1, np2):
-                a_allowed[pointer2] = 1
-                pointer1 += 1
-                pointer2 += 1
-            elif self.smaller_or_equals_for_action_space(np1, np2):
-                pointer1 += 1
-            else:
-                pointer2 += 1
+
+
+        #action_space = self.env.action_space().tolist()
+        #pointer1 = 0
+        #pointer2 = 0
+        #while pointer1 < len(action_space) and pointer2 < len(self.discrete2continuous):
+        #    np1 = action_space[pointer1]
+        #    np2 = self.discrete2continuous[pointer2]
+        #    if array_equal(np1, np2):
+        #        a_allowed[pointer2] = 1
+        #        pointer1 += 1
+        #        pointer2 += 1
+        #    elif self.smaller_or_equals_for_action_space(np1, np2):
+         #       pointer1 += 1
+         #   else:
+         #
+        #        pointer2 += 1
 
         #action_space = self.env.action_space()
         #for i in range(self.dim_action ):
@@ -67,7 +74,7 @@ class REINFORCE_agent(object):
         #        print("Not allowed actions is: ", self.discrete2continuous[i])
         if(sum(a_allowed)) <1:
             print("Warning we have a low action space!!!!!!!!!")
-            print("action space: ", action_space)
+    #       print("action space: ", action_space)
             print("my proposed actions", self.discrete2continuous)
            
         return a_allowed
@@ -150,9 +157,9 @@ class REINFORCE_agent(object):
         self.t = 0                                   # for counting 
         
         available_actions = zeros((3,self.env.n_stores+1 ))   # define a matrix that lists the possible actions for each store
-        available_actions[:,0] = [0,4,8]               # warehouse can produce more 0,5 or 10
+        available_actions[:,0] = [0,self.env.max_prod/2,self.env.max_prod]
         for i in range(self.env.n_stores):
-            available_actions[:,i+1] = [0,1,2]          # shops can order 0,1 or 2 
+            available_actions[:,i+1] = [0,self.env.cap_truck/2,self.env.cap_truck]
         
         # Discretize the action space: compute all action combinations
         self.discrete2continuous = []
@@ -164,6 +171,17 @@ class REINFORCE_agent(object):
                         self.discrete2continuous.append( array([int(available_actions[l,0]), int(available_actions[i,1]), int(available_actions[j,2]), int(available_actions[k,3])]))
                         # We use the l for the a0 so we have then ordered by store action and then by production. So it matches the action space order
 
+  #      self.is_possible_action = vectorize(self.possible_action)
+
+    def possible_action(self, action):
+        if sum(action[1:]) > self.env.s[0]:
+            return False
+        if self.env.s[0] + action[0] - sum(action[1:]) > self.env.cap_store[0]:
+            return False
+        for i in range(1, len(action)):
+            if self.env.cap_store[i] - self.env.s[i] < action[i]:
+                return False
+        return True
 
     def get_action(self,obs):
     #def get_action(self,obs,reward,action_space,done=False):
@@ -193,6 +211,7 @@ class REINFORCE_agent(object):
         
         t0 = time.time()
         allowed_actions = self.allowed_actions()
+        #allowed_actions =  self.is_possible_action(self.discrete2continuous)
         self.timeforallowedact += time.time()-t0
 
         self.episode_allowed_actions[self.t,:] = allowed_actions
@@ -250,9 +269,9 @@ class REINFORCE_agent(object):
             self.t = 0
             self.episode_allowed_actions = zeros((self.max_steps+1,self.dim_action)) # for storing the allowed episodes
             self.episode = zeros((self.max_steps+1,1+self.dim_state+1)) # for storing (a,s,r) 
-            print("Algorithm time: ", time.time()- self.t0, " seconds!")
-            print("timeforallowedact = ", self.timeforallowedact)
-            print("time for update = ", time.time() - tupdate )
+            #print("Algorithm time: ", time.time()- self.t0, " seconds!")
+            #print("timeforallowedact = ", self.timeforallowedact)
+            #print("time for update = ", time.time() - tupdate )
             self.timeforallowedact = 0
         
         return 
