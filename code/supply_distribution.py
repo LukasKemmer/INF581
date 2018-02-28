@@ -106,7 +106,6 @@ class SupplyDistribution:
         for element in itertools.product(*iterator):
             if np.sum(element[1:]) <= self.s[0]:
                 feasible_actions.append(element)
-
         return np.array(feasible_actions)
 
     def action_space_recur(self):

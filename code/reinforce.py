@@ -1,5 +1,6 @@
 from numpy import *
 import time
+import timeit
 
 def softmax_vec(z):  # computes the whole vector 
     ''' The softmax activation function '''
@@ -130,6 +131,7 @@ class REINFORCE_agent(object):
     def __init__(self,environment, obs_space, action_dim, max_steps): # to do: dim_action/action_space calculation, discretization of action space, especially discrete2continous, set episode length, discrete2continous
         
         self.t0 = time.time()
+        self.timeforallowedact = 0
         self.max_steps = max_steps
         self.env = environment
         self.dim_state = obs_space
@@ -188,7 +190,10 @@ class REINFORCE_agent(object):
 
         
         # save the allowed actions for that state
+        
+        t0 = time.time()
         allowed_actions = self.allowed_actions()
+        self.timeforallowedact += time.time()-t0
 
         self.episode_allowed_actions[self.t,:] = allowed_actions
         
@@ -221,6 +226,7 @@ class REINFORCE_agent(object):
         # End of episode ?
         if self.t == self.max_steps+1:
             #print("Update:",self.episode )
+            tupdate = time.time()
             for ts in range(self.t-1):  
                 Dt = sum(self.episode[ts:,-1])  # sum up all rewards
                 #print("Dt = ", Dt)
@@ -228,13 +234,14 @@ class REINFORCE_agent(object):
                 #print("action at ts=", ts,  " is ", action)
                 x = ones(self.dim_state + 1)
                 x[1:] = self.episode[ts,1:-1]
+                softmaxvalue = softmax(self.Theta,x,action)
                 for i in range(self.dim_action): # update every column in Theta individually
                     # Add the bias term (for our model)  
                     if i == action:  # different gradient for the weight of the action that was performed                         
-                        grad = (1 - softmax(self.Theta,x,action)) * x
+                        grad = (1 - softmaxvalue) * x
                         #print("for i equal to j: grad = ", grad)
                     else:                        
-                        grad = - softmax(self.Theta,x,action) * x
+                        grad = - softmaxvalue * x
                         #print("for i not equal to j: grad = ", grad)
                     #if self.episode_allowed_actions[ts,i] == 1:   # we don't update the policy if the action is not allowed
                     self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad  * Dt 
@@ -244,6 +251,9 @@ class REINFORCE_agent(object):
             self.episode_allowed_actions = zeros((self.max_steps+1,self.dim_action)) # for storing the allowed episodes
             self.episode = zeros((self.max_steps+1,1+self.dim_state+1)) # for storing (a,s,r) 
             print("Algorithm time: ", time.time()- self.t0, " seconds!")
+            print("timeforallowedact = ", self.timeforallowedact)
+            print("time for update = ", time.time() - tupdate )
+            self.timeforallowedact = 0
         
         return 
 
