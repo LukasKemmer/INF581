@@ -20,11 +20,11 @@ class q_s_agent(object):
             Heuristic based on s_q policy
         '''
         # Initialize output and helper variable
-        a = np.zeros(int((len(state)-1)/2)+1)
+        a = np.zeros(int((len(state)-1)/3)+1)
         disposable_produce = state[0]
         
         # 1. Set actions for individual warehouses
-        for i in np.arange(1, int((len(state)-1)/2)+1):
+        for i in np.arange(1, int((len(state)-1)/3)+1):
             # Check if current stock is below replenishment threshold
             if state[i] < self.threshold[i]:
                 # Replenish with reorder quantity if possible
