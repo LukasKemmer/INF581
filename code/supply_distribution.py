@@ -93,7 +93,7 @@ class SupplyDistribution:
             # what they need and keep the rests. We use around to get an integer out of it.
             
             #try not random:
-            demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * (self.t + i) / 12) + 1.5 )) # 2 month cycles
+            demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * (self.t + i - 3) / 24) + 1.5 )) # 2 month cycles
             # demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * (self.t + i) / 26) + 1.5 + np.random.randint(0, 2))) 
         self.demand = demand
 
