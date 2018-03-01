@@ -60,8 +60,8 @@ class SupplyDistribution:
         # Update reward
         reward = (sum(self.demand) * self.price
                   - action[0] * self.prod_cost
-                  - np.sum(np.maximum(np.zeros(len(self.s)), self.s) * self.store_cost)
-                  + np.sum(np.minimum(np.zeros(len(self.s)), self.s)) * self.penalty_cost # Changed to + so that penalty cost actually decrease reward -- Luke 26/02
+                  - np.sum(np.maximum(np.zeros(len(self.n_stores+1)), self.s[:n_stores+1]) * self.store_cost)
+                  + np.sum(np.minimum(np.zeros(len(self.n_stores+1)), self.s[:n_stores+1])) * self.penalty_cost # Changed to + so that penalty cost actually decrease reward -- Luke 26/02
                   - np.sum(np.ceil(action[1:] / self.cap_truck) * self.truck_cost)) # Removed .T after np.ceil, as it was unnecessary -- Luke 19/02
         info = "Demand was: ", self.demand  # TODO delete or do something -- Droche 15/02
 
