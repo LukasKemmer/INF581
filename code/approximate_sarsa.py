@@ -2,83 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 Created on Sat Feb 24 13:06:37 2018
-
 @author: lukaskemmer
 """
 #from supply_distribution import SupplyDistribution
 import numpy as np
 import numba as nb
-
-def phi(state, action, prod_cost, store_cost, price, n_stores):
-    return phi3(state, action, prod_cost, store_cost, price, n_stores)
-
-def basic_phi(state, action):
-    return np.hstack((state, action))
-
-def phi1(state, action, prod_cost, store_cost, price, n_stores):
-    # Create helper for parameters
-    parameter_helper = np.zeros(1+n_stores)
-    parameter_helper[0] = price - prod_cost - store_cost[0]
-    parameter_helper[1:] = price - store_cost[1:]
-    
-    # Create variable for result
-    result = action.copy()
-
-    # If action is 1d use simple computation
-    if action.ndim == 1:
-        result[1:] += state[1:n_stores+1] - state[n_stores+1:2*n_stores+1]
-        return np.hstack((1, result*parameter_helper))
-    
-    # If action is 2d use matrix computation
-    result[:, 1:] += (state[1:n_stores+1] - state[n_stores+1:2*n_stores+1])
-    return np.vstack((np.ones(action.shape[0]), (result*parameter_helper).T))
-
-def phi2(state, action, prod_cost, store_cost, price, n_stores):
-    # Create helper for parameters
-    parameter_helper = np.zeros(1+n_stores)
-    parameter_helper[0] = price - prod_cost
-    parameter_helper[1:] = price
-    
-    # Create variable for result
-    result = action.copy()
-
-    # If action is 1d use simple computation
-    if action.ndim == 1:
-        result[1:] += state[1:n_stores+1] - state[n_stores+1:2*n_stores+1]
-        return np.hstack((1, result*parameter_helper))
-    
-    # If action is 2d use matrix computation
-    result[:, 1:] += (state[1:n_stores+1] - state[n_stores+1:2*n_stores+1])
-    return np.vstack((np.ones(action.shape[0]), (result*parameter_helper).T))
-
-def phi3(state, action, prod_cost, store_cost, price, n_stores):
-    
-    if action.ndim==1:
-        phi = np.zeros(2*n_stores + 1 + 1) # +1 extra for bias
-
-        # Add bias
-        phi[0] = 1
-    
-        # Factory stock at least 25% full
-        phi[1] = action[0] #(state[0] + action[0] >= 5)*1
-    
-        # All positive states
-        phi[2:n_stores+2] = (state[1:n_stores+1] >= 0)*1
-    
-        # Demand can be satisfied
-        phi[2+n_stores:] = state[1:n_stores+1] + action[1:n_stores+1] - 2*state[n_stores+1:2*n_stores+1] + state[2*n_stores+1:]
-                
-        # Return result
-        return phi
-    
-    # Matrix version
-    phi = np.zeros((2*n_stores+2, action.shape[0])) # 8 x 504
-    phi[0,:] = 1
-    phi[1,:] = action[:,0] #(state[0] + action[:, 0] >= 5)*1
-    phi[2:n_stores+2,:] = ((state[1:n_stores+1] >= 0)*1 ).reshape(n_stores, 1)
-    phi[2+n_stores:,:] = (state[1:n_stores+1] + action[:,1:n_stores+1] - 2*state[n_stores+1:2*n_stores+1] + state[2*n_stores+1:]).T
-
-    return phi
 
 class approximate_sarsa_agent(object):
     
@@ -87,51 +15,132 @@ class approximate_sarsa_agent(object):
         self.env = env
         
         # Initialize theta random
-        self.theta = np.random.rand(8)#np.ones(env.n_stores+2)#
-        #self.theta /= np.sum(self.theta)
+        self.theta = np.random.rand(9*env.n_stores+9)#np.ones(env.n_stores+2)#
         self.thetas = [self.theta.copy()]
         # Initialize the stepsize alpha
-        self.alpha = 1#0.02
-    
-        # Initialize agent parameters for stepsize rule
+        self.alpha = 0.0001
+        # Initialize Epsilon for epsilon greedy
+        self.epsilon = 0.4
+        # Initialize agent parameters for stepsize rule        
         self.n=1
-        self.stepsizes = [1]
-        
+        self.stepsizes = [0.0001]
         # Initialize environment params
-        #self.env_params = (env.prod_cost, env.price, env.n_stores)
         self.env_params = (env.prod_cost, env.store_cost, env.price, env.n_stores)
+        # Initialize status logger
+        self.log = []
     
-    def get_action(self, state, epsilon=0.2):
+    def phi(self, state, action):
+    
+        # Copy variables for easier to read code
+        n_stores = self.env.n_stores
+        price = self.env.price
+        prod_cost = self.env.prod_cost
+        store_cost = self.env.store_cost.reshape(n_stores+1,1)
+        penalty_cost = self.env.penalty_cost
+        cap_truck = self.env.cap_truck
+        truck_cost = self.env.truck_cost.reshape(n_stores,1)
+        action_dim = action.ndim
+        #store_cap = self.env.cap_store
+        
+        # Initialize phi
+        if action_dim==1:
+            phi = np.zeros((9*n_stores+9, 1))
+            action = action.reshape(1, n_stores+1) # reshape action so matrix operation is possible
+        else:
+            phi = np.zeros((9*n_stores+9, action.shape[0]))
+            
+        # Create simple estimates for demand and storage levels in the next episode
+        d_next = (2*state[n_stores+1:2*n_stores+1] - state[2*n_stores+1:3*n_stores+1])
+        s_next = ((state[0:n_stores+1] - np.hstack((0, d_next))).T + action).T
+        
+        # Save size of s_next
+        s_shape = (s_next.shape[0]-1, s_next.shape[1])
+
+        # Create simple scenarios for errors within s_next estimation
+        s_next_plus = s_next.copy()
+        s_next_plus[1:n_stores+1,:] += 1
+        s_next_minus = s_next.copy()
+        s_next_minus[1:n_stores+1,:] -= 1
+
+        # Add bias
+        phi[0,:] = 1
+            
+        # Reward from sales
+        phi[1,:] = np.sum(d_next)*price
+            
+        # Production cost
+        phi[2,:] = action[:,0]*prod_cost
+            
+        # Store cost
+        phi[3:n_stores+4,:] = -np.maximum(np.zeros(s_next.shape), s_next) * store_cost
+
+        # Penalty cost
+        phi[n_stores+4:2*n_stores+4,:] = np.minimum(np.zeros(s_shape), s_next[1:,:]) * penalty_cost
+            
+        # Transportation cost
+        phi[2*n_stores+4:3*n_stores+4,:] = -np.ceil(action[:,1:] / cap_truck).T * truck_cost
+        
+        # Store cost for scenarios
+        phi[3*n_stores+4:4*n_stores+5,:] = -np.maximum(np.zeros(s_next.shape), s_next_minus) * store_cost
+        phi[4*n_stores+5:5*n_stores+6,:] = - np.maximum(np.zeros(s_next.shape), s_next_plus) * store_cost
+        
+        # Penalty cost for scenarios
+        phi[6*n_stores+6:7*n_stores+6,:] = np.minimum(np.zeros(s_shape), s_next_minus[1:,:]) * penalty_cost
+        phi[7*n_stores+6:8*n_stores+6,:] = np.minimum(np.zeros(s_shape), s_next_plus[1:,:]) * penalty_cost
+        
+        # Reward from scenarios
+        phi[8*n_stores+6,:] = (np.sum(d_next)+len(d_next))*price
+        phi[8*n_stores+7,:] = (np.sum(d_next)-len(d_next))*price
+                
+        # Factory stock can satisfy next estimated demand
+        phi[8*n_stores+8,:] = (s_next[0] >= np.sum(d_next))*1
+            
+        # Positive stock in warehouses
+        phi[8*n_stores+9:9*n_stores+9,:] = (s_next[1:n_stores+1,:] >= 0)*1
+        
+        # Format output in case of single action input
+        if action_dim ==1:
+            return phi.reshape((9*n_stores+9,))
+            
+        return phi
+            
+    def get_action(self, state):
         # Find all possible actions
-        actions = np.array(self.env.action_space()) # TODO: Should be changed in supply_chain to return numpy array
+        actions = np.array(self.env.action_space())
         
         # With probability epsilon, select random action
-        if np.random.rand() < epsilon:
+        if np.random.rand() < self.epsilon:
             return actions[np.random.randint(0, len(actions))]
 
         # With probability 1-epsilon, select greedy action
-        return actions[np.argmax(np.dot(self.theta, phi(state, actions, *self.env_params)))]        
+        return actions[np.argmax(np.dot(self.theta, self.phi(state, actions)))]        
     
     def update(self, state, action, reward, state_new, action_new):
         # Calculate delta
-        delta = reward + self.env.gamma * np.dot(self.theta, phi(state_new, action_new, *self.env_params)) - np.dot(self.theta, phi(state, action, *self.env_params))
+        delta = reward + self.env.gamma * np.dot(self.theta, self.phi(state_new, action_new)) - np.dot(self.theta, self.phi(state, action))
 
         # Update theta
-        self.theta += self.alpha * delta * phi(state, action, *self.env_params)        
+        self.theta += self.alpha * delta * self.phi(state, action)        
         
-        # Normalize theta to [0,1] (only relative weights should be important for policy selection)
-        #self.theta /= np.sum(self.theta)
-        self.theta /= np.max(np.abs(self.theta))
-        self.thetas.append(self.theta.copy())
+        # LOG TODO: implement "logger"
+        #self.thetas.append(self.theta.copy())
         
-        # Update learning rate alpha
+        # Update alpha, epsilon and n
+        self.epsilon = update_epsilon(self.epsilon, self.n)
         self.alpha = update_alpha(self.alpha, self.n)
-        self.stepsizes.append(self.alpha)
+        #self.stepsizes.append(self.alpha)
         self.n+=1
+        
+        # Save information for log
+        self.log.append([self.n, self.alpha, self.epsilon, delta, self.theta.copy()])
+        
+@nb.njit(cache=True)
+def update_epsilon(epsilon, n):
+    return stc_stepsize(epsilon)     
         
 @nb.njit(cache=True)
 def update_alpha(alpha, n):
-    return geometric_stepsize(alpha)
+    return mcclains_formular(alpha, target=1e-5)
 
 @nb.njit(cache=True)
 def geometric_stepsize(alpha, beta=0.99):
@@ -142,9 +151,9 @@ def generalized_harmonic_stepsize(n, a=20):
     return a/(a+n-1)
 
 @nb.njit(cache=True)
-def mcclains_formular(alpha, n, target=0.005):
+def mcclains_formular(alpha, target=0.005):
     return alpha/(1+alpha-target)
 
 @nb.njit(cache=True)
-def stc_stepsize(n, alpha_0=1, a=10, b=100, beta=0.75):
+def stc_stepsize(n, alpha_0=0.5, a=150, b=50, beta=0.7):
     return alpha_0 * (b/n+a) / (b/n+a+np.power(n, beta))
