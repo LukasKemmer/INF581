@@ -46,7 +46,7 @@ class SupplyDistribution:
         """
         self.s = np.zeros(self.n_stores + 1, dtype=int)  # +1 Because the central warehouse is not counted as a store
         # self.s[0] = self.cap_store[0] / 2  # start with center half full TODO decide initial values --Droche 15/02
-        self.s[0] = 5
+        self.s[0] = self.cap_store[0]
         self.demand = np.zeros(self.n_stores, dtype=int)
         self.demand_old = np.zeros(self.n_stores, dtype=int)
         self.t = 0
@@ -91,7 +91,10 @@ class SupplyDistribution:
         for i in range(self.n_stores):
             # We need an integer so we use the ceiling because if there is demand then we asume the users will buy
             # what they need and keep the rests. We use around to get an integer out of it.
-            demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * (self.t + i) / 26) + 1.5 + np.random.randint(0, 2)))
+            
+            #try not random:
+            demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * (self.t + i) / 12) + 1.5 )) # 2 month cycles
+            # demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * (self.t + i) / 26) + 1.5 + np.random.randint(0, 2))) 
         self.demand = demand
 
     def action_space_itertools(self): # TODO: check which version of action_space is correct and should be used

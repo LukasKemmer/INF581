@@ -14,6 +14,34 @@ def softmaxvec(Theta, obs):  # computes a vector of the softmax
     prob = prob/ sum(prob)
     return prob
 
+def softmax_f(Theta, obs, allowed_actions):
+    count_allowed_a = int(sum(allowed_actions))        
+    prob = zeros(count_allowed_a)        
+    actions_ind = zeros(count_allowed_a).astype(int)   # keep an array of all allowed actions
+    dotproduct  = zeros(count_allowed_a)  # save an array with the computed dotproduct of theta and obs
+    counter= 0
+    count = 0
+    for k in range(Theta.shape[1]):
+        if allowed_actions[k]==1: 
+            actions_ind[count] = k
+            dotproduct[count] = dot(obs,Theta[:,k])
+            count += 1
+
+    correction = max(dotproduct) - 6 # choose a correction factor       
+    correction_vec = correction * ones(count_allowed_a)
+    
+    exp_dot = exp(dotproduct - correction_vec)
+    exp_dot = exp_dot / sum(exp_dot)
+    
+    prob = zeros(Theta.shape[1])
+    prob[actions_ind] = exp_dot 
+    #print("softmax_vec = ", prob)
+    #print("allowed_actions = ", allowed_actions )
+    #print("softmax_vec sum = ", sum(prob))
+    return prob
+
+            
+
 def softmax(Theta, obs, index):  # computes an entry of the softmax corresponding to the action(index)
     ''' The softmax activation function '''
     sum_exp = 0
@@ -107,7 +135,7 @@ class REINFORCE_agent(object):
                                        
     def __init__(self,environment, obs_space, action_dim, max_steps): # to do: dim_action/action_space calculation, discretization of action space, especially discrete2continous, set episode length, discrete2continous
         
-        self.epsilon = 0.8
+        self.epsilon = 0
         self.t0 = time.time()
         self.timeforallowedact = 0
         self.max_steps = max_steps
@@ -117,10 +145,11 @@ class REINFORCE_agent(object):
         self.dim_action = action_dim**(self.env.n_stores+1)  # number of actions to choose
         
         # set random weights
-        self.Theta = random.randn(self.dim_state+1 , self.dim_action ) * 0.1  # create weightmatrix with columns as vectors for the individual softmax inputs
-
+        #self.Theta = random.randn(self.dim_state+1 , self.dim_action ) * 0.1  # create weightmatrix with columns as vectors for the individual softmax inputs
+        self.Theta = zeros((self.dim_state+1 , self.dim_action ))
+        
         # The step size for the gradient
-        self.alpha = 1    # has to definitely be updated
+        self.alpha = 0.00000001    # has to definitely be updated
 
         # To store an episode
         self.episode_allowed_actions = zeros((self.max_steps+1,self.dim_action)) # for storing the allowed episodes
@@ -175,6 +204,7 @@ class REINFORCE_agent(object):
         """
         
         # Save some info to a episode
+        obs[-self.env.n_stores:] = obs[-2*self.env.n_stores:-self.env.n_stores] - obs[-self.env.n_stores:]
         self.episode[self.t,1:self.dim_state+1] = obs   # set observations in log
 
         
@@ -212,6 +242,10 @@ class REINFORCE_agent(object):
         
         # End of episode ?
         if self.t == self.max_steps+1:
+            # compute the last reward:
+            state_new, reward, done, info = self.env.step(action_new)
+            self.episode[self.t-1,-1] = reward
+            
             
             self.epsilon = self.epsilon * 0.9995 # change epsilon parameter
             print("Update:",self.episode )
@@ -223,7 +257,7 @@ class REINFORCE_agent(object):
                 
                 x = ones(self.dim_state + 1)
                 x[1:] = self.episode[ts,1:-1]
-                softmax_vec = softmaxvec(self.Theta,x)
+                softmax_vec = softmax_f(self.Theta,x,self.episode_allowed_actions[ts,:])
                 for i in range(self.dim_action): # update every column in Theta individually
                     # Add the bias term (for our model)                     
                     if i == action:  # different gradient for the weight of the action that was performed                                                
@@ -237,7 +271,8 @@ class REINFORCE_agent(object):
             print("gradientsum = ", sum(sum(absolute(grad))))
             for i in range(self.dim_action):
                 self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad[i,:] 
-            #print("Theta 2 after is : ", self.Theta[:,2])
+                #self.Theta[:,i] = self.Theta[:,i]/ sum(self.Theta[:,i])
+            print("Theta 2 after is : ", self.Theta[:,2])
             # after episode, set everything to zero!
             self.t = 0
             self.episode_allowed_actions = zeros((self.max_steps+1,self.dim_action)) # for storing the allowed episodes
