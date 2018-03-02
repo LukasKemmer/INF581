@@ -32,7 +32,7 @@ np.random.seed(10108)
 
 # Simulation parameters
 n_episodes = 5001
-max_steps = 26  # 2 years = 52 * 2 weeks ( 2 week steps )
+max_steps = 24  # 2 years = 52 * 2 weeks ( 2 week steps )
 
 # Visualization parameters
 output=1
