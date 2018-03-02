@@ -32,7 +32,7 @@ np.random.seed(10108)
 
 # Simulation parameters
 n_episodes = 5001
-max_steps = 26  # 2 years = 52 * 2 weeks ( 2 week steps )
+max_steps = 24  # 2 years = 52 * 2 weeks ( 2 week steps )
 
 # Visualization parameters
 output=1
@@ -58,6 +58,8 @@ agent = approximate_sarsa_agent_V3(env)
 
 # Initialize array with rewards
 rewards = np.zeros(n_episodes)
+stocks = np.zeros((n_episodes*max_steps, env.n_stores+1))
+demands = np.zeros((n_episodes*max_steps, env.n_stores))
 
 #Initialize epsilon
 epsilon = 0.999
@@ -77,6 +79,11 @@ for episode in np.arange(n_episodes):
     epsilon *= 0.999
 
     for step in np.arange(max_steps):
+        
+        # Log environment
+        stocks[episode*max_steps+step, :] = env.s
+        demands[episode*max_steps+step, :] = env.demand
+
         # Update environment
         state_new, reward, done, info = env.step(action)
 
@@ -100,12 +107,35 @@ for episode in np.arange(n_episodes):
       
     # Add episodes reward to rewards list
     rewards[episode] = episode_reward
-        
+
 # ============================ 3. Output results ============================ #    
 
 # Output results
 print("Average reward: ", round(np.mean(rewards),2))
-plt.plot(rewards[::2])
-#plt.plot(agent.stepsizes)
-plt.hist(rewards, normed=True)
-plt.show()
+
+# Receive information from agent
+ns = [agent.log[i][0] for i in range(len(agent.log))]
+alphas = [agent.log[i][1] for i in range(len(agent.log))]
+epsilons = [agent.log[i][2] for i in range(len(agent.log))]
+deltas = [agent.log[i][3] for i in range(len(agent.log))]
+thetas = [agent.log[i][4] for i in range(len(agent.log))]
+
+# Plot results
+fig = plt.figure(figsize=(5, 10), dpi=120)
+fig.add_subplot(6, 1, 1)
+plt.plot(rewards)
+fig.add_subplot(6, 1, 2)
+plt.plot(thetas)
+fig.add_subplot(6, 1, 3)
+plt.plot(deltas)
+fig.add_subplot(6, 1, 4)
+plt.plot(alphas)
+fig.add_subplot(6, 1, 5)
+plt.plot(epsilons)
+
+# Plot some behavior
+seq = np.arange(24*900,24*902)
+fig = plt.figure(figsize=(5, 10), dpi=120)
+fig.add_subplot(1, 1, 1)
+plt.plot(stocks[seq,1])
+plt.plot(demands[seq,0])

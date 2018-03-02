@@ -23,6 +23,12 @@
 \newtheorem{thm}{Theorem}[section]
 \theoremstyle{definition}
 \newtheorem{defn}[thm]{Definition}
+% Algorithm description
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
 % End of added stuff by lukas
 
 \begin{document}
@@ -57,18 +63,22 @@ Elaborate (in your own words) the background material required to understand you
 \end{equation}
 
 \section{The Environment}
-In this report we analyze a supply-chain optimization environment that we regard over an infinite amount of periods. The environment consists of one factory (indexed by $0$) and up to $k \in \mathbb{N}$ warehouses (indexed by $j=1,...,k$) where in each period it needs to be decided how many units of a product (e.g. butter) should be produced and how many should be shipped to the individual warehouses. A representation of a network with 5 warehouses is depicted in figure \ref{fig:model_example}. 
+In this report we analyze a supply-chain optimization environment that we regard over an infinite amount of periods $t = 0, ...$. The environment consists of one factory (indexed by $0$) and up to $k \in \mathbb{N}$ warehouses (indexed by $j=1,...,k$) where in each period it needs to be decided how many units of a product (e.g. butter) should be produced and how many should be shipped to the individual warehouses. A representation of a network with 5 warehouses is depicted in figure \ref{fig:model_example}. 
 \begin{figure}[h]
 	\label{fig:model_example}
 	\centering
 	\includegraphics[width=0.4\columnwidth]{model.png}
 	\caption{\label{a_figure}Example of a supply chain network with $k=5$ warehouses ($s_1, .., s_5$) and the factory ($s_0$).}
 \end{figure}
-The state space consists of $k+1$ elements describing the current stock levels of the factory and the warehouses ($s_j, j=0,...,k$), where each stock level is limited by some capacity $c_j \in \mathbb{N}$. Note that this implies that the factory itself can also build up stock. Furthermore we include an environment process $D$ describing the (stochastic) demand $d_j$ at each warehouse $j = 1,...,k$ with transition probabilities $q_d(d')$ that are unknown by the agent. In each period the agent can now set the factories production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ (with a maximum production of $\rho_{max} \in \mathbb{N}$) aswell as the number of products shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the state transitions $(s, d, a) \rightarrow T(s,d,a)$ by
+The state space consists of $k+1$ elements describing the current stock levels of the factory and the warehouses ($s_j, j=0,...,k$), where each stock level is limited by some capacity $c_j \in \mathbb{N}$. Note that this implies that the factory itself can also build up stock. Furthermore we include an environment process $D \in \{0,..., 4\}$ describing the (stochastic) demand $d_j$ at each warehouse $j = 1,...,k$ with transition probabilities $q_d(d')$ that are unknown by the agent. We assume a discretized version of a sinus-function and some shocks $\epsilon$ where the demand follows a model 
+\begin{equation}
+	d_{i,t} = \left\lceil 1.5 \sin\left( \frac{2 \pi t}{24} + i\right) + 1.5 + \epsilon \right\rceil, i = 1,..., k
+\end{equation}
+with $\left\lceil \cdot \right\rceil$ the ceiling function, $P(\epsilon=0) = P(\epsilon=1) = 0.5$ and $t \in \mathbb{N}$. We will include $d \in D$ in our state space since the demand $d_{i, t}$ is correlated with the demand $d_{i, t+1}$. Note that each tupel $(s, d)$ at some point in time $t + 1$ consists of the current state and the last observed demand ($(s_{t+1}, d_t)$). In each period the agent can now set the factories production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ (with a maximum production of $\rho_{max} \in \mathbb{N}$) aswell as the number of products shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the state transitions $(s, d, a) \rightarrow T(s,d,a)$ by
 \begin{equation}
 \label{eq:transition_function}
 	\begin{split}
-		T(s, d, a) \coloneqq &(\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \\
+		T(s, d, a) \coloneqq (&\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \\
 		&\min\{s_1 + a_1 - d_1, c_1 \}, \\
 		&\ ... \\
 		&\min\{s_k + a_k - d_k, c_k \}).
@@ -125,15 +135,55 @@ For the calculation of the expected discounted revenue for each tuple $(s, d)$ w
 \end{equation}
 \section{The Agent}
 
-The agent you designed for your environment. Justify your choice and design and explain briefly how you implemented/configured it. Naturally, if you took a ready-made environment, you should invert relatively much more effort into this section than the previous one.
-
+%The agent you designed for your environment. Justify your choice and design and explain briefly how you implemented/configured it. Naturally, if you took a %ready-made environment, you should invert relatively much more effort into this section than the previous one.
+In this paper we evaluated the performance of three agents based on different algorithms: a heuristic based on the $(s^{-}, Q)$-Policy (add ref.) that we use as the baseline for performance evaluation, an approximate SARSA (add ref.) algorithm  and an implementation of the REINFORCE (add ref.) algorithm. \newline
+\textbf{The $(s^{-}, Q)$-Policy} based agent is not smart in the way that it does not learn over time. Due to the popularity of the $(s^{-}, Q)$-Policy in practice we use it as a baseline for the performance evaluation of the other agents. In the $(s^{-}, Q)$ policy we iterate over $s_1, ..., s_k$ and replenish the respective warehouses by some amount $Q_i$ if the current stock is below a level $s_i^{-}$ and there is still stock left in the factory $s_0$. At the and we set the production level for the next period to $Q_0$ if the new $s_0 < s_0^{-}$ and $0$ otherwise. The thresholds $s^{-}$ and replenishment levels $Q$ need to be set by the user when initializing the agent.
+\newline
+\textbf{Approximate SARSA} uses a linear approximation $Q_{\theta}(s, a) = \theta^T \phi(s,a)$ of the actual Q-function $Q^{\pi}$. We chose this method as it solves the problem of exponentially growing state- and action- spaces that is likely to occur in multidimensional environments. Furthermore it allows us to use our knowledge of the environment (especially the structure of the reward function $r(s, d, a)$) to design $\phi(s, a)$ such that it preserves some of the MDPs structure. The algorithm is implemented as depicted in (add ref.). %Algorithm \ref{algo:approximate_sarsa}.
+%\begin{algorithm}
+%	\label{algo:approximate_sarsa}
+%	\caption{Approximate SARSA}\label{euclid}
+%	\begin{algorithmic}[1]
+%		\Procedure{myprod}{}
+%		\State $\textit{stringlen} \gets \text{length of }\textit{string}$
+%		\State $i \gets \textit{patlen}$
+%		\BState \emph{top}:
+%		\If {$i > \textit{stringlen}$} \Return false
+%		\EndIf
+%		\State $j \gets \textit{patlen}$
+%		\BState \emph{loop}:
+%		\If {$\textit{string}(i) = \textit{path}(j)$}
+%		\State $j \gets j-1$.
+%		\State $i \gets i-1$.
+%		\State \textbf{goto} \emph{loop}.
+%		\State \textbf{close};
+%		\EndIf
+%		\State $i \gets i+\max(\textit{delta}_1(\textit{string}(i)),\textit{delta}_2(j))$.
+%		\State \textbf{goto} \emph{top}.
+%		\EndProcedure
+%	\end{algorithmic}
+%\end{algorithm}
+The underlying intuiton for the definition of $\phi$ is to value states $s$ based on an approximation of the individual storage levels and the sales price $p$. We assume that the stock in each warehouse $s_1,..., s_k$ will be roughly equivalent to the current stock level minus the current demand (which is used as a proxy of the demand in the next step). For the factory $s_0$ we solely regard the current storage level but deduct the production cost $\kappa_{pr}$ from the sales price. Based on this intuition we can define $\phi: S \times D \times A \rightarrow \mathbb{R}^{k+1}$ by
+\begin{equation}
+	\label{eq:sarsa_phi}
+	\begin{split}
+	\phi(s, a) \coloneqq (&(s_0 + a_0)(p - \kappa_{pr}), \\
+	&(s_1 + a_1 - d_1)p, \\
+	&\ ... \\
+	&p (s_k + a_k - d_k)p ).
+	\end{split}
+\end{equation} 
+When testing the approximate SARSA algorihm we found that originally the parameters $\theta$ would increase until computations became numerically unstable. To avoid this issue, after each update of $\theta$ we apply the normalization $\theta_i = \theta_i (\sum_{i=1}^{k+1} \theta_i)^{-1}$. Since this only affects the absolute value of $Q_{\theta}(s,a)$ but not its order the normalization does not change the behavior of the agent.
 \section{Results and Discussion}
+
+
 
 This is one of the most important sections. You put your agent to the test in the environment, you show -- and most importantly -- you interpret the results.
 
 \subsection{Performance of your Agent in your Environment}
 
-Show plots, graphs, tables (e.g., Table~\ref{a_table}), etc. You may wish to encourage readers to reproduce results for themselves, e.g., run \texttt{runDemo.py} in our source code. Show how your agent performs well, or, if it doesn't perform well, it is better to explain why (this is a result in itself!). In any case, you \emph{must} highlight the weaknesses of your agent as well as its strengths.
+Show plots, graphs, tables (e.g., Table~\ref{a_table}), etc. You may wish to encourage readers to reproduce results for themselves, e.g., run \texttt{runDemo.py} in our source code. Show how your agent performs well, or, if it doesn't perform well, it is better to explain why (this is a result in itself!). In any case, you \emph{must} highlight the weaknesses of your agent as well as its strengths. \newline
+
 
 \begin{table}[h]
 	\caption{\label{a_table}This table is just an example.}
