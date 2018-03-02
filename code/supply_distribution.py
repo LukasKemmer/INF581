@@ -8,7 +8,8 @@ class SupplyDistribution:
 
     def __init__(self, n_stores=3, cap_truck=2, prod_cost=1, max_prod=8,
                  store_cost=np.array([0.01, 0.1, 0.1, 0.1]), truck_cost=np.array([1, 2, 3]),
-                 cap_store=np.array([20, 5, 5, 5]), penalty_cost=2, price=30, gamma=0.90):
+                 cap_store=np.array([20, 5, 5, 5]), penalty_cost=2, price=30, gamma=0.90,
+                 max_demand = 8, episode_length = 48):
         """
         :param n_stores:
         :param cap_truck:
@@ -29,11 +30,14 @@ class SupplyDistribution:
         self.cap_store = np.ones(n_stores + 1, dtype=int)
         self.cap_store = cap_store
         self.cap_truck = cap_truck
-        # costs:
+        # costs
         self.prod_cost = prod_cost
         self.store_cost = np.array(store_cost)
         self.truck_cost = np.array(truck_cost)
         self.penalty_cost = penalty_cost
+        # demand
+        self.max_demand = max_demand
+        self.episode_length = episode_length
         # other variables
         self.gamma = gamma
         self.t = 0
@@ -44,12 +48,14 @@ class SupplyDistribution:
         """
         Resets the environment to the starting conditions
         """
-        self.s = np.zeros(self.n_stores + 1, dtype=int)  # +1 Because the central warehouse is not counted as a store
+        self.s = (self.cap_store/2).astype(np.int) #np.zeros(self.n_stores + 1, dtype=int)  # +1 Because the central warehouse is not counted as a store
         # self.s[0] = self.cap_store[0] / 2  # start with center half full TODO decide initial values --Droche 15/02
-        self.s[0] = self.cap_store[0]/2
-        self.demand = np.zeros(self.n_stores, dtype=int)
-        self.demand_old = np.zeros(self.n_stores, dtype=int)
+        #self.s[0] = self.cap_store[0]/2
         self.t = 0
+        # Initialize demand and update it directly to avoid jumps in demand of first step
+        self.demand = np.zeros(self.n_stores, dtype=int)
+        self.update_demand()
+        self.demand_old = self.demand.copy() #np.zeros(self.n_stores, dtype=int)
         return np.hstack((self.s.copy(), self.demand.copy(), self.demand_old.copy()))
 
     def step(self, action):  # TODO Check np.array * -- Droche 15/02
@@ -93,7 +99,7 @@ class SupplyDistribution:
             # what they need and keep the rests. We use around to get an integer out of it.
             
             #try not random:
-            demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * (self.t + i - 3) / 24) + 1.5 )) # 2 month cycles
+            demand[i] = int(np.floor(.5*self.max_demand * np.sin( np.pi * (self.t + 2*i) / (.5*self.episode_length) - np.pi ) + .5*self.max_demand )) # 2 month cycles
             # demand[i] = int(np.ceil(1.5 * np.sin(2 * np.pi * (self.t + i) / 26) + 1.5 + np.random.randint(0, 2))) 
         self.demand = demand
 
