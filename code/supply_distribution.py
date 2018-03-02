@@ -46,7 +46,7 @@ class SupplyDistribution:
         """
         self.s = np.zeros(self.n_stores + 1, dtype=int)  # +1 Because the central warehouse is not counted as a store
         # self.s[0] = self.cap_store[0] / 2  # start with center half full TODO decide initial values --Droche 15/02
-        self.s[0] = self.cap_store[0]
+        self.s[0] = self.cap_store[0]/2
         self.demand = np.zeros(self.n_stores, dtype=int)
         self.demand_old = np.zeros(self.n_stores, dtype=int)
         self.t = 0
