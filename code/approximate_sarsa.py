@@ -16,15 +16,14 @@ class approximate_sarsa_agent(object):
         self.env = env
         
         # Initialize theta random
-        self.theta = np.random.rand(9*env.n_stores+9)#np.ones(env.n_stores+2)#
+        self.theta = np.random.rand(11*env.n_stores+9)#np.ones(env.n_stores+2)#
         self.thetas = [self.theta.copy()]
         # Initialize the stepsize alpha
-        self.alpha = 0.0001
+        self.alpha = 1e-5
         # Initialize Epsilon for epsilon greedy
-        self.epsilon = 0.4
+        self.epsilon = 0.1
         # Initialize agent parameters for stepsize rule        
         self.n=1
-        self.stepsizes = [0.0001]
         # Initialize environment params
         self.env_params = (env.prod_cost, env.store_cost, env.price, env.n_stores)
         # Initialize status logger
@@ -45,10 +44,10 @@ class approximate_sarsa_agent(object):
         
         # Initialize phi
         if action_dim==1:
-            phi = np.zeros((9*n_stores+9, 1))
+            phi = np.zeros((11*n_stores+9, 1))
             action = action.reshape(1, n_stores+1) # reshape action so matrix operation is possible
         else:
-            phi = np.zeros((9*n_stores+9, action.shape[0]))
+            phi = np.zeros((11*n_stores+9, action.shape[0]))
             
         # Create simple estimates for demand and storage levels in the next episode
         d_next = (2*state[n_stores+1:2*n_stores+1] - state[2*n_stores+1:3*n_stores+1])
@@ -99,9 +98,13 @@ class approximate_sarsa_agent(object):
         # Positive stock in warehouses
         phi[8*n_stores+9:9*n_stores+9,:] = (s_next[1:n_stores+1,:] >= 0)*1
         
+        # Estimate of demand in next period and quadratic demand in next period
+        phi[9*n_stores+9:10*n_stores+9,:] = d_next
+        phi[10*n_stores+9:11*n_stores+9,:] = np.power(d_next, 2)
+        
         # Format output in case of single action input
         if action_dim ==1:
-            return phi.reshape((9*n_stores+9,))
+            return phi.reshape((11*n_stores+9,))
             
         return phi
             
@@ -161,11 +164,11 @@ class approximate_sarsa_agent(object):
 
 @nb.njit(cache=True)
 def update_epsilon(epsilon, n):
-    return stc_stepsize(epsilon)     
+    return epsilon#stc_stepsize(epsilon)     
         
 @nb.njit(cache=True)
 def update_alpha(alpha, n):
-    return mcclains_formular(alpha, target=1e-5)
+    return alpha #mcclains_formular(alpha, target=1e-5)
 
 @nb.njit(cache=True)
 def geometric_stepsize(alpha, beta=0.99):
