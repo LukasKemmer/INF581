@@ -7,6 +7,7 @@ Created on Sat Feb 24 13:06:37 2018
 #from supply_distribution import SupplyDistribution
 import numpy as np
 import numba as nb
+import matplotlib.pyplot as plt
 
 class approximate_sarsa_agent(object):
     
@@ -133,7 +134,31 @@ class approximate_sarsa_agent(object):
         
         # Save information for log
         self.log.append([self.n, self.alpha, self.epsilon, delta, self.theta.copy()])
+
+    def create_plots(self, rewards):
+        '''
+            Plots parameters of agent
+        '''
+        # Receive information from agent
+        ns = [self.log[i][0] for i in range(len(self.log))]
+        alphas = [self.log[i][1] for i in range(len(self.log))]
+        epsilons = [self.log[i][2] for i in range(len(self.log))]
+        deltas = [self.log[i][3] for i in range(len(self.log))]
+        thetas = [self.log[i][4] for i in range(len(self.log))]
         
+        # Plot parameters
+        fig = plt.figure(figsize=(5, 10), dpi=120)
+        fig.add_subplot(6, 1, 1)
+        plt.plot(rewards)
+        fig.add_subplot(6, 1, 2)
+        plt.plot(thetas)
+        fig.add_subplot(6, 1, 3)
+        plt.plot(deltas)
+        fig.add_subplot(6, 1, 4)
+        plt.plot(alphas)
+        fig.add_subplot(6, 1, 5)
+        plt.plot(epsilons)
+
 @nb.njit(cache=True)
 def update_epsilon(epsilon, n):
     return stc_stepsize(epsilon)     
