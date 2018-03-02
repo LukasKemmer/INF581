@@ -31,23 +31,30 @@ def print_step(step, state, action, reward, state_new, total_reward, freq = 100)
 np.random.seed(10108)
 
 # Simulation parameters
-n_episodes = 1000
-max_steps = 24  # 2 years = 52 * 2 weeks ( 2 week steps )
+n_episodes = 100000
+max_steps = 24 # 24 Months
 
 # Visualization parameters
-output=0
-status_freq = 100 # Print status (current episode) every X episodes
-print_freq = 100 # Print current step every X episodes
+output=1
+status_freq = int(n_episodes/100) # Print status (current episode) every X episodes
+print_freq = int(n_episodes/5) # Print current step every X episodes
+log_freq = n_episodes / 10 # Helper variable for when 
 
 # Instantiate environment
-env = SupplyDistribution(n_stores=1, cap_truck=5, prod_cost=0, max_prod=10,
-                 store_cost=np.array([0.5, 0]),
-                 truck_cost=np.array([0]),
-                 cap_store=np.array([20, 10]),
-                 penalty_cost=4, price=0, gamma=0.90)
+env = SupplyDistribution(n_stores=1, 
+                         cap_truck=10, 
+                         prod_cost=0, 
+                         max_prod=10,
+                         store_cost=np.array([0, 0]),
+                         truck_cost=np.array([0]),
+                         cap_store=np.array([20, 20]),
+                         penalty_cost=4, 
+                         price=5, 
+                         gamma=1, 
+                         max_demand = 8,
+                         episode_length = max_steps)
 
 # Select agent
-
 #agent = q_s_agent(threshold = np.array([10, 3, 3, 3]), reorder_quantity = np.array([11, 3, 3, 3]))
 agent = approximate_sarsa_agent(env)
 #agent = approximate_sarsa_agent_V2(env)
@@ -58,39 +65,29 @@ agent = approximate_sarsa_agent(env)
 
 # Initialize array with rewards
 rewards = np.zeros(n_episodes)
-stocks = np.zeros((n_episodes*max_steps, env.n_stores+1))
-demands = np.zeros((n_episodes*max_steps, env.n_stores))
-
-#Initialize epsilon
-epsilon = 0.999
+stocks = np.zeros((n_episodes / log_freq, max_steps, env.n_stores+1))
+demands = np.zeros((n_episodes / log_freq, max_steps, env.n_stores))
 
 # Simulate n_episodes with max_steps each
 for episode in np.arange(n_episodes):
+    
     # Print number current episode each 100 episodes
     if episode % status_freq == 0:
         print("Episode ", episode)
-    if episode == 5000:
-        print("HERE!")
+
     # Reset environment, select initial action and reset episode reward
     state = env.reset()
-    #action = agent.get_action(state, epsilon)
     action = agent.get_action(state)
     episode_reward = 0
-    epsilon *= 0.999
 
     for step in np.arange(max_steps):
         
-        # Log environment
-        stocks[episode*max_steps+step, :] = env.s
-        demands[episode*max_steps+step, :] = env.demand
-
         # Update environment
         state_new, reward, done, info = env.step(action)
 
         # Select a new action
-        # action_new = agent.get_action(state_new, epsilon)
         action_new = agent.get_action(state_new)
-        #action_new = agent.get_action(state)
+
         # Update episode reward
         episode_reward += np.power(env.gamma, step) * reward
         
@@ -100,7 +97,12 @@ for episode in np.arange(n_episodes):
         # Print information
         if output and episode % print_freq == 0:
             print_step(step, state, action, reward, state_new, episode_reward,print_freq)
-        
+            
+        # Log environment
+        if (episode+1) % log_freq == 0:
+            stocks[(episode+1) / log_freq - 1, step, :] = env.s
+            demands[(episode+1) / log_freq - 1, step, :] = env.demand
+                
         # Update state
         state = state_new
         action = action_new
@@ -113,12 +115,17 @@ for episode in np.arange(n_episodes):
 # Output results
 print("Average reward: ", round(np.mean(rewards),2))
 
+# Print rewards
+plt.plot(rewards)
+
 # Create plots from agent (e.g. parameter development over time)
 agent.create_plots(rewards)
 
 # Plot some behavior
+'''
 seq = np.arange(24*900,24*902)
 fig = plt.figure(figsize=(5, 10), dpi=120)
 fig.add_subplot(1, 1, 1)
 plt.plot(stocks[seq,1])
 plt.plot(demands[seq,0])
+'''
