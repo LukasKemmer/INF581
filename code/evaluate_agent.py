@@ -114,7 +114,7 @@ for episode in np.arange(n_episodes):
 print("Average reward: ", round(np.mean(rewards),2))
 
 # Create plots from agent (e.g. parameter development over time)
-agent.plot(agent.log)
+agent.create_plots(rewards)
 
 # Plot some behavior
 seq = np.arange(24*900,24*902)
