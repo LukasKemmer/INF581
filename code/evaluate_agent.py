@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from q_s_agent import q_s_agent
 from approximate_sarsa import approximate_sarsa_agent
+from approximate_sarsa_V2 import approximate_sarsa_agent_V2
+from approximate_sarsa_V3 import approximate_sarsa_agent_V3
 from supply_distribution import SupplyDistribution
 from reinforce import REINFORCE_agent
 
@@ -29,51 +31,59 @@ def print_step(step, state, action, reward, state_new, total_reward, freq = 100)
 np.random.seed(10108)
 
 # Simulation parameters
-n_episodes = 5000
-max_steps = 13 # 2 years = 52 * 2 weeks ( 2 week steps )
+n_episodes = 5001
+max_steps = 26  # 2 years = 52 * 2 weeks ( 2 week steps )
 
 # Visualization parameters
 output=1
 status_freq = 10 # Print status (current episode) every X episodes
-print_freq = 1000 # Print current step every X episodes
+print_freq = 100 # Print current step every X episodes
 
 # Instantiate environment
-env = SupplyDistribution(n_stores=3, cap_truck=3, prod_cost=0, max_prod=16,
-                 store_cost=np.array([0, 0, 0, 0]), 
-                 truck_cost=np.array([0, 0, 0]),
-                 cap_store=np.array([30, 5, 5, 5]), 
-                 penalty_cost=2, price=4, gamma=0.90)
+env = SupplyDistribution(n_stores=1, cap_truck=5, prod_cost=0, max_prod=10,
+                 store_cost=np.array([0.5, 0]),
+                 truck_cost=np.array([0]),
+                 cap_store=np.array([20, 10]),
+                 penalty_cost=4, price=0, gamma=0.90)
 
 # Select agent
 
 #agent = q_s_agent(threshold = np.array([10, 3, 3, 3]), reorder_quantity = np.array([11, 3, 3, 3]))
 #agent = approximate_sarsa_agent(env)
-agent = REINFORCE_agent(env,10,3, max_steps)
+#agent = approximate_sarsa_agent_V2(env)
+agent = approximate_sarsa_agent_V3(env)
+#agent = REINFORCE_agent(env,10,3, max_steps)
 
 # ============================ 2. Evaluate agent ============================ #
 
 # Initialize array with rewards
 rewards = np.zeros(n_episodes)
 
+#Initialize epsilon
+epsilon = 0.999
+
 # Simulate n_episodes with max_steps each
 for episode in np.arange(n_episodes):
     # Print number current episode each 100 episodes
     if episode % status_freq == 0:
         print("Episode ", episode)
-
+    if episode == 5000:
+        print("HERE!")
     # Reset environment, select initial action and reset episode reward
     state = env.reset()
+    #action = agent.get_action(state, epsilon)
     action = agent.get_action(state)
     episode_reward = 0
-    
+    epsilon *= 0.999
+
     for step in np.arange(max_steps):
-        
         # Update environment
         state_new, reward, done, info = env.step(action)
 
         # Select a new action
+        # action_new = agent.get_action(state_new, epsilon)
         action_new = agent.get_action(state_new)
-        
+        #action_new = agent.get_action(state)
         # Update episode reward
         episode_reward += np.power(env.gamma, step) * reward
         
@@ -95,6 +105,7 @@ for episode in np.arange(n_episodes):
 
 # Output results
 print("Average reward: ", round(np.mean(rewards),2))
-plt.plot(rewards)
+plt.plot(rewards[::2])
 #plt.plot(agent.stepsizes)
 plt.hist(rewards, normed=True)
+plt.show()
