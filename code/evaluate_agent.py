@@ -29,31 +29,32 @@ def print_step(step, state, action, reward, state_new, total_reward, freq = 100)
 np.random.seed(10108)
 
 # Simulation parameters
-n_episodes = 5000
-max_steps = 13 # 2 years = 52 * 2 weeks ( 2 week steps )
+n_episodes = 1000
+max_steps = 24# 24 = 1 year (one cycle)
 
 # Visualization parameters
-output=1
-status_freq = 10 # Print status (current episode) every X episodes
-print_freq = 1000 # Print current step every X episodes
+output=0
+status_freq = 100 # Print episode number every X episodes
+print_freq = 1000 # Print each step step every X episodes
 
 # Instantiate environment
-env = SupplyDistribution(n_stores=3, cap_truck=3, prod_cost=0, max_prod=16,
-                 store_cost=np.array([0, 0, 0, 0]), 
-                 truck_cost=np.array([0, 0, 0]),
-                 cap_store=np.array([30, 5, 5, 5]), 
+env = SupplyDistribution(n_stores=2, cap_truck=3, prod_cost=1, max_prod=5,
+                 store_cost=np.array([0.2, 0.1, 0.1]), 
+                 truck_cost=np.array([0, 0]),
+                 cap_store=np.array([10, 5, 4]), 
                  penalty_cost=2, price=4, gamma=0.90)
 
 # Select agent
-
-#agent = q_s_agent(threshold = np.array([10, 3, 3, 3]), reorder_quantity = np.array([11, 3, 3, 3]))
-#agent = approximate_sarsa_agent(env)
-agent = REINFORCE_agent(env,10,3, max_steps)
+#agent = q_s_agent(threshold = np.array([6, 3]), reorder_quantity = np.array([5, 3]))
+agent = approximate_sarsa_agent(env)
+#agent = REINFORCE_agent(env,10,3, max_steps)
 
 # ============================ 2. Evaluate agent ============================ #
 
 # Initialize array with rewards
 rewards = np.zeros(n_episodes)
+stocks = np.zeros((n_episodes*max_steps, env.n_stores+1))
+demands = np.zeros((n_episodes*max_steps, env.n_stores))
 
 # Simulate n_episodes with max_steps each
 for episode in np.arange(n_episodes):
@@ -67,6 +68,10 @@ for episode in np.arange(n_episodes):
     episode_reward = 0
     
     for step in np.arange(max_steps):
+        
+        # Log environment
+        stocks[episode*max_steps+step, :] = env.s
+        demands[episode*max_steps+step, :] = env.demand
         
         # Update environment
         state_new, reward, done, info = env.step(action)
@@ -90,11 +95,36 @@ for episode in np.arange(n_episodes):
       
     # Add episodes reward to rewards list
     rewards[episode] = episode_reward
-        
+
 # ============================ 3. Output results ============================ #    
 
 # Output results
 print("Average reward: ", round(np.mean(rewards),2))
+
+# Receive information from agent
+ns = [agent.log[i][0] for i in range(len(agent.log))]
+alphas = [agent.log[i][1] for i in range(len(agent.log))]
+epsilons = [agent.log[i][2] for i in range(len(agent.log))]
+deltas = [agent.log[i][3] for i in range(len(agent.log))]
+thetas = [agent.log[i][4] for i in range(len(agent.log))]
+
+# Plot results
+fig = plt.figure(figsize=(5, 10), dpi=120)
+fig.add_subplot(6, 1, 1)
 plt.plot(rewards)
-#plt.plot(agent.stepsizes)
-plt.hist(rewards, normed=True)
+fig.add_subplot(6, 1, 2)
+plt.plot(thetas)
+fig.add_subplot(6, 1, 3)
+plt.plot(deltas)
+fig.add_subplot(6, 1, 4)
+plt.plot(alphas)
+fig.add_subplot(6, 1, 5)
+plt.plot(epsilons)
+
+# Plot some behavior
+seq = np.arange(24*900,24*902)
+fig = plt.figure(figsize=(5, 10), dpi=120)
+fig.add_subplot(1, 1, 1)
+plt.plot(stocks[seq,1])
+plt.plot(demands[seq,0])
+
