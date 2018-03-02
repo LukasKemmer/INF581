@@ -15,10 +15,10 @@ class approximate_sarsa_agent_V3(object):
         self.env = env
         
         # Initialize theta random
-        self.theta = np.random.rand(15)
+        self.theta = np.random.rand(29)
         self.thetas = [self.theta.copy()]
         # Initialize the stepsize alpha
-        self.alpha = 0.02
+        self.alpha = 0.01
         # Initialize Epsilon for epsilon greedy
         self.epsilon = 0.999
         # Initialize agent parameters for stepsize rule        
@@ -41,7 +41,7 @@ class approximate_sarsa_agent_V3(object):
         truck_cost = self.env.truck_cost.reshape(n_stores,1)
         theta_size =  self.theta.shape[0]
         action_dim = action.ndim
-        #store_cap = self.env.cap_store
+        store_cap = self.env.cap_store
         
         # Initialize phi
         if action_dim==1:
@@ -74,7 +74,6 @@ class approximate_sarsa_agent_V3(object):
                                                                                      self.env.n_stores + 1:2 * self.env.n_stores + 1] + state[
                                                                                                                               2 * self.env.n_stores + 1:] < 0).T
         # How much will there be after demand(only positive, 0 if can't be satisfied)
-        # phi[5, :] = np.minimum(state[1:self.env.n_stores+1] + action[:,1:self.env.n_stores+1] - 2*state[self.env.n_stores+1:2*self.env.n_stores+1] + state[2*self.env.n_stores+1:], np.zeros((action.shape[0],1))).T
         # Stock will be more than X after producing
         # phi[2 + self.env.n_stores * 2, :] = (state[0] + action[:, 0] - sum(action[:, 1:].T) > 7)
         # phi[2 + self.env.n_stores * 2 + 1, :] = (state[0] + action[:, 0] - sum(action[:,1:].T) > 15)
@@ -89,13 +88,18 @@ class approximate_sarsa_agent_V3(object):
         # How full is the truck
         phi[12, :] = np.ceil(action[:, 1] / self.env.cap_truck) - action[:, 1] / self.env.cap_truck
         # Penalty cost
-        #phi[13,:] = np.minimum(np.zeros(s_shape), s_next[1:,:]) * penalty_cost
+        phi[13,:] = np.minimum(np.zeros(s_shape), s_next[1:,:]) / 100
         # Factory stock can satisfy next estimated demand
-        #phi[14,:] = (s_next[0] >= np.sum(d_next))*1
+        phi[14,:] = (s_next[0] >= np.sum(d_next))*1
         # Format output in case of single action input
-        if action_dim ==1:
+        production_rest = (state[0] + action[:, 0] - sum(action[:, 1:].T))
+        for i in range(10):
+            phi[15+i, :] = np.logical_and(production_rest > (store_cap[0]*0.1*i), production_rest <= (store_cap[0]*0.1*(i+1)))
+        stock_rest = state[0] + action[:, 0] - sum(action[:, 1:].T)
+        for i in range(4):
+            phi[25+i, :] = np.logical_and(stock_rest > (store_cap[1] * 0.1 * i),  stock_rest <= (store_cap[1] * 0.1 * (i + 1)))
+        if action_dim == 1:
             return phi.reshape((theta_size,))
-            
         return phi
             
     def get_action(self, state):
