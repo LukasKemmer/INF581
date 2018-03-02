@@ -11,9 +11,12 @@ import numpy as np
 class q_s_agent(object):
     
     def __init__(self, threshold, reorder_quantity):
+        # Initialize parameters
         self.threshold = threshold
         self.reorder_quantity = reorder_quantity
-        
+
+        # Initialize status logger
+        self.log = []
 
     def get_action(self, state):
         '''
@@ -43,5 +46,11 @@ class q_s_agent(object):
     def update(self, state, action, reward, state_new, action_new):
         '''
             update function not required for q-s-policy
+        '''
+        pass
+    
+    def create_plots(self):
+        '''
+            Plots parameters of agent
         '''
         pass
