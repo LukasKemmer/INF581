@@ -45,7 +45,7 @@ env = SupplyDistribution(n_stores=1,
                          cap_truck=4, 
                          prod_cost=1, 
                          max_prod=4,
-                         store_cost=np.array([0.2, 0.5]),
+                         store_cost=np.array([0.5, 1]),
                          truck_cost=np.array([0]),
                          cap_store=np.array([40, 14]),
                          penalty_cost=4, 
@@ -69,15 +69,21 @@ stocks = np.zeros((int(n_episodes / log_freq), max_steps, env.n_stores+1))
 demands = np.zeros((int(n_episodes / log_freq), max_steps, env.n_stores))
 maxreward = -100000 # save the maximum reward episode
 
-current_stocks = np.zeros(( max_steps, env.n_stores+1))
-current_demands = np.zeros(( max_steps, env.n_stores+1))
+current_stocks = np.zeros(( max_steps+1, env.n_stores+1))
+current_demands = np.zeros(( max_steps+1, env.n_stores+1))
+current_actions = np.zeros(( max_steps+1, env.n_stores+1))
 # Simulate n_episodes with max_steps each
 for episode in np.arange(n_episodes):
     # Reset environment, select initial action and reset episode reward
     state = env.reset()
     action = agent.get_action(state)
     episode_reward = 0
-        
+    
+    # save some stuff
+    current_stocks[0,:] = env.s
+    current_demands[0,:] = env.demand 
+    current_actions[0,:] = action 
+    
     for step in np.arange(max_steps):
         
         # Update environment
@@ -98,7 +104,8 @@ for episode in np.arange(n_episodes):
             
         # Log environment
         current_stocks[step,:] = env.s
-        current_demands[step,:] = env.demand        
+        current_demands[step,:] = env.demand 
+        current_actions[step,:] = action_new
         if (episode+1) % log_freq == 0:
             stocks[int((episode+1) / log_freq - 1), step, :] = env.s
             demands[int((episode+1) / log_freq - 1), step, :] = env.demand
@@ -113,9 +120,11 @@ for episode in np.arange(n_episodes):
     rewards[episode] = episode_reward
     
     # Save for best reward actions
-    if episode_reward == max(episode_reward, maxreward):
+    if episode_reward >= max(episode_reward, maxreward):
         best_stocks = current_stocks.copy()
         best_demands= current_demands.copy()
+        best_actions= current_actions.copy()
+        maxreward = episode_reward
     
     # Print number current episode each 100 episodes
     if episode % status_freq == 0:
@@ -143,18 +152,21 @@ for i in range(1,11):
     plt.plot(stocks[i-1,:,0], 'b', label='Stock factory')
     plt.xlabel('time (months)')
     plt.ylabel('stock/price')
-    plt.legend()
+    # plt.legend()
 
     
 fig2 = plt.figure(figsize=(10, 4), dpi=120)
-plt.title("For the best policy")
+fig.add_subplot(2, 1, 1)
+plt.title("For the best policy: reward = %s"%maxreward)
 plt.plot(best_stocks[:,1], 'g', label='Stock warehouse 1')
 plt.plot(best_demands[:,0], 'r', label='Demand warehouse 1')
 plt.plot(best_stocks[:,0], 'b', label='Stock factory')
 plt.xlabel('time (months)')
 plt.ylabel('stock/price')
 plt.legend()
-
+fig.add_subplot(2, 1, 2)
+plt.plot(best_actions[:,0], 'b', label='production')
+plt.plot(best_actions[:,1], 'g', label='sending to warehouse')
 
 fig3 = plt.figure(figsize=(10, 4), dpi=120)
 plt.title("Rewards")
