@@ -77,6 +77,7 @@ The designed agents are based on the blueprints for the approximate SARSA and RE
 Furthermore we use several different stepsize formulars from \cite{PowellADP} that are used to update some of the agents parameters such as the learning rate $\alpha$. The idea of specific stepsize rules is to allow the agent to go through a longer learning phase in the beginning with higher learning rates and then converge in the long term to stepsizes close to $0$. %This behavior can be seen in \ref{fig:stc_stepsize}. that shows the learning rates generated from 
 Among others we use a so called search-then-converge stepsize rule as presented in \cite{PowellADP} where the learning rate in the $n^{th}$ iteration is calculated by
 \begin{equation}
+\label{eq:stc}
 	\alpha_n = \alpha_0 \frac{\frac{b}{n} + a}{ \frac{b}{n} + a + n^{\beta}}
 \end{equation}
 with some parameters $\alpha_0, b, a$ and $\beta$ that can be set by the user based on the required behavior of the stepsize.
@@ -164,48 +165,33 @@ For the calculation of the expected discounted revenue for each tuple $(\tilde{s
 \end{equation}
 \section{The Agent}
 %The agent you designed for your environment. Justify your choice and design and explain briefly how you implemented/configured it. Naturally, if you took a %ready-made environment, you should invert relatively much more effort into this section than the previous one.
-In this paper we evaluated the performance of three agents based on different algorithms: a heuristic based on the $(\varsigma, Q)$-Policy that we use as the baseline for performance evaluation, an approximate SARSA algorithm and an implementation of the REINFORCE algorithm. \newline
+In this paper we evaluate the performance of three agents based on different algorithms: a heuristic based on the $(\varsigma, Q)$-Policy that we use as the baseline for performance evaluation, an approximate SARSA algorithm and an implementation of the REINFORCE algorithm. \newline
 \textbf{The $(\varsigma, Q)$-Policy} based agent is not smart in the way that it does not learn over time. Due to the popularity of the $(\varsigma, Q)$-Policy in practice we use it as a baseline for performance evaluation of the other agents. In the heuristic we iterate over $s_1, ..., s_k$ and replenish the respective warehouses by some amount $a_i = Q_i$ if the current stock is below a level $\varsigma_i$ and there is still stock left in the factory $s_0$. At the end we set the production level for the next period to $Q_0$ if $s_0 - \sum_{i=1}^{k}a_i < \varsigma_0$ and $0$ otherwise. The thresholds $\varsigma$ and replenishment levels $Q$ need to be set by the user when initializing the agent.
 \newline
-\textbf{Approximate SARSA} uses a linear approximation $Q_{\theta}(\tilde{s}, a) = \theta^T \phi(\tilde{s},a)$ of the actual Q-function $Q^{\pi}$. We chose this method as it solves the problem of exponentially growing state- and action- spaces that is likely to occur in multidimensional environments. Furthermore it allows us to use our knowledge of the environment (especially the structure of the reward function $r(\tilde{s}, d, a)$) to design $\phi(\tilde{s}, a)$ such that it preserves some of the MDPs structure. The algorithm is implemented as depicted in (add ref.). %Algorithm \ref{algo:approximate_sarsa}.
-%\begin{algorithm}
-%	\label{algo:approximate_sarsa}
-%	\caption{Approximate SARSA}\label{euclid}
-%	\begin{algorithmic}[1]
-%		\Procedure{myprod}{}
-%		\State $\textit{stringlen} \gets \text{length of }\textit{string}$
-%		\State $i \gets \textit{patlen}$
-%		\BState \emph{top}:
-%		\If {$i > \textit{stringlen}$} \Return false
-%		\EndIf
-%		\State $j \gets \textit{patlen}$
-%		\BState \emph{loop}:
-%		\If {$\textit{string}(i) = \textit{path}(j)$}
-%		\State $j \gets j-1$.
-%		\State $i \gets i-1$.
-%		\State \textbf{goto} \emph{loop}.
-%		\State \textbf{close};
-%		\EndIf
-%		\State $i \gets i+\max(\textit{delta}_1(\textit{string}(i)),\textit{delta}_2(j))$.
-%		\State \textbf{goto} \emph{top}.
-%		\EndProcedure
-%	\end{algorithmic}
-%\end{algorithm}
-The underlying intuiton for the definition of $\phi$ is to value states $\tilde{s}$ based on an approximation of the individual storage levels, recent demands $(d_{last}, d_{hist})$ and the sales price $p$. We assume that the stock in each warehouse $s_1,..., s_k$ will be roughly equivalent to the current stock level minus the current demand (which is used as a proxy of the demand in the next step). For the factory $s_0$ we solely regard the current storage level but deduct the production cost $\kappa_{pr}$ from the sales price. Based on this intuition we can define $\phi: S \times D \times A \rightarrow \mathbb{R}^{k+1}$ by
+\textbf{Approximate SARSA} uses a linear approximation $Q_{\theta}(\tilde{s}, a) = \theta^T \phi(\tilde{s},a)$ of the Q-function. We chose this method as it solves the problem of exponentially growing state- and action- spaces that is likely to occur in multidimensional environments. Furthermore it allows us to use our knowledge of the environment (especially the structure of the reward function $r(\tilde{s}, d, a)$) to design $\phi(\tilde{s}, a)$ such that it preserves some of the MDPs structure. The algorithm is implemented as depicted in \cite{LectureDRL} where we use an $\epsilon$-Greedy strategy to select the action and a search-then-converge stepsize rule to update the learning rate $\alpha$ and the probability of chosing a random action $\epsilon$ as defined in~\eqref{eq:transition_function}. \newline
+One of the crucial tasks when designing the approximate SARSA agent is the model for $\phi: \tilde{S} \times A \rightarrow \mathbb{R}^p, p \in \mathbb{N}$. This can be understood similar to feature engineering where we use some state $s$ and some action $a$ to compute $p$ features that should be capable of describing $Q(s,a)$. In our case we create over $15$ different types of features that can be binary as well as continuous. One of the main ideas is to get a rough estimate of the next demand and state by
 \begin{equation}
-	\label{eq:sarsa_phi}
 	\begin{split}
-	\phi(s, a) \coloneqq (&(s_0 + a_0)(p - \kappa_{pr}), \\
-	&(s_1 + a_1 - d_1)p, \\
-	&\ ... \\
-	&p (s_k + a_k - d_k)p ).
+		\hat{d}(\tilde{s})&= d_{last} + \left( d_{last} - d_{hist} \right) = 2d_{last} - d_{hist}, \\
+		\hat{s}(\tilde{s}, a) &= T(\tilde{s}, \hat{d}(\tilde{s}), a)_{(d, d_{last})},
 	\end{split}
-\end{equation} 
+\end{equation}
+where $T(\cdot)_{(d, d_{last})}$ is the transition function excluding its last two elements. This way the agent can get a basic understanding of rewards and penalties associated with $\hat{s}$. Among others we use the expected penalty costs, the expected reward and the squared difference of the stock levels $s$ from their $25\%, 50\%$ and $75\% $ maximum capacity. Furthermore we include the respective rewards and costs for two scenarios where $\hat{d}^+=\hat{d}(\tilde{s}) + 1$ and $\hat{d}^-=\hat{d}(\tilde{s})  - 1$. While designing the agent we ended up with two different functions $\phi$ and $\phi^\prime$ that affect the agents behavior. Both functions have been tested and are included in our code. We encourage the reader to try out both. A full list of all features can be found in the appendix. \newline
+%The underlying intuiton for the definition of $\phi$ is to value states $\tilde{s}$ based on an approximation of the individual storage levels, recent demands $(d_{last}, d_{hist})$ and the sales price $p$. We assume that the stock in each warehouse $s_1,..., s_k$ will be roughly equivalent to the current stock level minus the current demand (which is used as a proxy of the demand in the next step). For the factory $s_0$ we solely regard the current storage level but deduct the production cost $\kappa_{pr}$ from the sales price. Based on this intuition we can define $\phi: S \times D \times A \rightarrow \mathbb{R}^{k+1}$ by
+%\begin{equation}
+%	\label{eq:sarsa_phi}
+%	\begin{split}
+%	\phi(s, a) \coloneqq (&(s_0 + a_0)(p - \kappa_{pr}), \\
+%	&(s_1 + a_1 - d_1)p, \\
+%	&\ ... \\
+%	&p (s_k + a_k - d_k)p ).
+%	\end{split}
+%\end{equation} 
 When testing the approximate SARSA algorihm we found that for some environments the parameters $\theta$ would increase until computations became numerically unstable. To avoid this issue we restrict the temporal difference
 \begin{equation}
 	\delta_n = r(\tilde{s_n}, d_n, a_n) + \gamma \theta_n^T \phi(\tilde{s}_{n+1}, a_{n+1}) - \theta_n^T\phi(\tilde{s}_n, a_n)
 \end{equation}
-that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{50}, +1\mathrm{e}{50}]$.
+that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{100}, +1\mathrm{e}{100}]$. Furthermore we initialize the agent with a very small stepsize $\alpha$. 
 \section{Results and Discussion}
 
 
@@ -231,16 +217,13 @@ Show plots, graphs, tables (e.g., Table~\ref{a_table}), etc. You may wish to enc
 \end{table}
 
 \subsection{Performance of your Agent in the ALife Environment}
-
-You deploy your agent in the ALife\footnote{\url{https://github.com/jmread/alife}} environment (a random screenshot shown in Figure~\ref{a_figure}). Does it work well? Why? Why not? Justify the adaptation you think is best.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=0.8\columnwidth]{alife.png}
-	\caption{\label{a_figure}An example figure}
-\end{figure}
-
-
+%You deploy your agent in the ALife\footnote{\url{https://github.com/jmread/alife}} environment (a random screenshot shown in Figure~\ref{a_figure}). Does it work well? Why? Why not? Justify the adaptation you think is best.
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[width=0.8\columnwidth]{alife.png}
+%	\caption{\label{a_figure}An example figure}
+%\end{figure}
+Our implementation of the approximate SARSA algorithm uses a very specific value function approximation that depends strongly on assumptions about the underlying environment. Since this environment has no structural similarity with the ALife\footnote{\url{https://github.com/jmread/alife}} environment it can not be used for testing. To adapt the algorithm to the ALife environment it would be necessary to create new features and design a different function $\phi$ to be used within the existing agent.
 \section{Conclusion and Future Work}
 	This section summarizes the paper: Your environment and agent, its strength and its weaknesses. Also remark about what would be the next steps you would take if you or someone else were to continue/extend this project. 
 	Note that for the initial submission you are limited strictly to 4 pages (double column), \emph{not including references}. An extra page will be allowed for final submission (after the initial reviews). 
