@@ -13,7 +13,8 @@ from approximate_sarsa import approximate_sarsa_agent
 #from approximate_sarsa_V2 import approximate_sarsa_agent_V2
 #from approximate_sarsa_V3 import approximate_sarsa_agent_V3
 from supply_distribution import SupplyDistribution
-from reinforce2 import REINFORCE_agent
+from reinforce3 import REINFORCE_agent
+from reinforce4_Gaussian import REINFORCE_agent_Gauss
 
 # ========================= 0. Function definitions ========================= #
 
@@ -31,7 +32,7 @@ def print_step(step, state, action, reward, state_new, total_reward, freq = 100)
 np.random.seed(10108)
 
 # Simulation parameters
-n_episodes = 10000
+n_episodes = 20000
 max_steps = 24 # 24 Months
 
 # Visualization parameters
@@ -59,7 +60,8 @@ env = SupplyDistribution(n_stores=1,
 #agent = approximate_sarsa_agent(env)
 #agent = approximate_sarsa_agent_V2(env)
 #agent = approximate_sarsa_agent_V3(env)
-agent = REINFORCE_agent(env, actions_per_store = 3, max_steps = max_steps)
+#agent = REINFORCE_agent(env, actions_per_store = 3, max_steps = max_steps)
+agent = REINFORCE_agent_Gauss(env, actions_per_store = 3, max_steps = max_steps)
 
 # ============================ 2. Evaluate agent ============================ #
 

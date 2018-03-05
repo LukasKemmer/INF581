@@ -74,7 +74,8 @@ The designed agents are based on the blueprints for the approximate SARSA and RE
 	\caption{\label{sQ} Schematic visualization of a $(\varsigma, Q)$-Policy for a single warehouse.}
 \end{figure}
 \newline
-Furthermore we use several different stepsize formulars from \cite{PowellADP} that are used to update some of the agents parameters such as the learning rate $\alpha$. The idea of specific stepsize rules is to allow the agent to go through a longer learning phase in the beginning with higher learning rates and then converge in the long term to stepsizes close to $0$. %This behavior can be seen in \ref{fig:stc_stepsize}. that shows the learning rates generated from 
+Furthermore we use several different stepsize formulars from \cite{PowellADP} that are used to update some of the agents parameters such as the learning rate $\alpha$. 
+The idea of specific stepsize rules is to allow the agent to go through a longer learning phase in the beginning with higher learning rates and then converge in the long term to stepsizes close to $0$. %This behavior can be seen in \ref{fig:stc_stepsize}. that shows the learning rates generated from 
 Among others we use a so called search-then-converge stepsize rule as presented in \cite{PowellADP} where the learning rate in the $n^{th}$ iteration is calculated by
 \begin{equation}
 \label{eq:stc}
@@ -191,7 +192,48 @@ When testing the approximate SARSA algorihm we found that for some environments 
 \begin{equation}
 	\delta_n = r(\tilde{s_n}, d_n, a_n) + \gamma \theta_n^T \phi(\tilde{s}_{n+1}, a_{n+1}) - \theta_n^T\phi(\tilde{s}_n, a_n)
 \end{equation}
+<<<<<<< Updated upstream
 that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{100}, +1\mathrm{e}{100}]$. Furthermore we initialize the agent with a very small stepsize $\alpha$. 
+=======
+that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{50}, +1\mathrm{e}{50}]$.
+
+\textbf{The REINFORCE algorithm} is is based on a parametrized policy that has to be optimized. The optimization of finding the maximum expected reward is achieved with a gradient ascent technique. We assume our policy to be parametrized with a softmax function for multiple actions. The softmax function works as a stochastic policy that can under convergence turn into a deterministic policy. Our policy is thus defined in the following way:
+\begin{equation}
+    \label{simple_equation}
+    p( a = a^{(k)}| s) = \pi_\Theta(a = a^{(k)},s) = \frac{e^{\Phi(s)^T w_{a^{(k)}}}\cdot f(a^{(k)}|s)}{\sum_{j=1}^{n_a} e^{\Phi(s)^T w_{a^{(j)}}}\cdot f(a^{(j)}|s)} 
+\end{equation}
+where 
+\begin{equation}
+   f(a^{(j)}|s) =
+   \begin{cases}
+     1 & \text{if $a^{(j)}$ is allowed in state s} \\
+     0 & \text{otherwise} \\ 
+   \end{cases}
+\end{equation}
+$n_a$ is the number of possible actions $n_a = n_a_{per_store}^{(k+1)}$ ($n_a=3$  number of actions per factory/warehouse, $k=3$ number of stores). The parameter matrix $\Theta$ is assembled the following way:
+\begin{equation}
+	\Theta = \big(w_1|w_2|...|w_A\big) \in \mathbb{R}^{(k+2) \times A }
+\end{equation}
+and $w_i \in \mathbb{R}^{(k+1)+1}$ (including a bias).
+
+
+
+\section{Gradient ascent}
+In order to do the gradient ascent we have to compute the gradient:
+\begin{equation}
+	\nabla_{w_i}J(\Theta) = \nabla_{w_i} ln(\pi_\Theta(a_t = a_j,s_t))D_t =
+	\begin{cases}
+     (1-\sigma_i(s_t))\cdot s_t\cdot D_t  & \text{if $i = j$} \\
+     -\sigma_i(s_t) \cdot s_t \cdot D_t & \text{if $i \neq  j$} \\ 
+    \end{cases}
+\end{equation}
+where $\sigma$ is the softmax function.
+Now every vector $w_i$ of $\Theta$ can be updated.
+
+
+
+
+>>>>>>> Stashed changes
 \section{Results and Discussion}
 
 
