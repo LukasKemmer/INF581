@@ -2,5 +2,5 @@
 /code/.idea
 **/.ipynb_checkpoints
 **/__pycache__/**
-
+*.csv
 *.ipynb
