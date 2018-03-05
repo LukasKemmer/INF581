@@ -100,7 +100,7 @@ The state space consists of $k+1$ elements describing the current stock levels o
 		d_{i,t} = &\left\lceil \frac{d_{max}}{2} \sin\left( \frac{2 \pi (t + 2i) }{12}\right) + \frac{d_{max}}{2} + \epsilon_{i,t} \right\rceil
 	\end{split}
 \end{equation}
-with $\left\lceil \cdot \right\rceil$ the ceiling function and $P(\epsilon_{i,t}=0) = P(\epsilon_{i,t}=1) = 0.5$. We will include $d_{last}, d_{hist} \in D$ in our state space where for some time $t$ we have the tuple $\tilde{s} = (s, d_{last}, d_{hist})$ with $s = s_t$, $d_{last} = d_{t-1}$ and $d_{hist} = d_{t-2}$. Note that this implies that the demand $d_t$ of period $t$ is not observed by the agent. This means, that the demand in a period $t$ will be realized after observing the stock levels $s_t$ and can only be observed in the next period $t+1$.
+with $\left\lceil \cdot \right\rceil$ the ceiling function and $P(\epsilon_{i,t}=0) = P(\epsilon_{i,t}=1) = 0.5$. We will include $d_{last}, d_{hist} \in D$ in our state space where for some time $t$ we have the tuple $\tilde{s} = (s, d_{last}, d_{hist}) \in \tilde{S} \coloneqq S \times D^2$ with $s = s_t$, $d_{last} = d_{t-1}$ and $d_{hist} = d_{t-2}$. Note that this implies that the demand $d_t$ of period $t$ is not observed by the agent. This means, that the demand in a period $t$ will be realized after observing the stock levels $s_t$ and can only be observed in the next period $t+1$.
 %since the demand $d_{i, t}$ is correlated with the demand $d_{i, t+1}$. Note that each tupel $(s, d, d_{hist})$ at some point in time $t + 1$ consists of the current state, the last observed demand and the  \left($(s_{t+1}, d_t, d_{t-1})$\right). 
 The reason we add the old demands to the state space is to allow the agent to have a simple understanding of the demand history to be able to gather a basic understanding of the demands movement. In each period the agent can now set the factories production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ (with a maximum production of $\rho_{max} \in \mathbb{N}$) aswell as the number of products shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the state transitions $(\tilde{s}, d, a) \rightarrow T(\tilde{s},d,a)$ by
 \begin{equation}
@@ -128,13 +128,13 @@ The reward within each period consists of the revenue from sold products at a fi
 		&+\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil.
 	\end{split}
 \end{equation}
-Furthermore we chose a discounting factor $\gamma \in (0,1)$ that can be interpreted e.g. as a result of inflation. \newline Based on this model description we can now formulate the task as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(S, I, A, \mathcal{X}, T, Q, r, \gamma)$ with
+Furthermore we chose a discounting factor $\gamma \in (0,1)$ that can be interpreted e.g. as a result of inflation. \newline Based on this model description we can now formulate the task as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(\tilde{S}, D, A, \mathcal{X}, T, Q, r, \gamma)$ with
 \begin{defn} \label{def:modell} \
 	\begin{itemize}
-		\item[1.] $S \times D^3 \coloneqq \prod\limits_{j=0}^{k} \{s_j \in \mathbb{Z} \ | \ s_j \leq c_j\} \times D^3, c_j \in \mathbb{N}$ the state space consisting of elements $(\tilde{s}, d) = ((s, d_{last}, d_{hist}), d)$;
+		\item[1.] $\tilde{S}  \times D \coloneqq \prod\limits_{j=0}^{k} \{s_j \in \mathbb{Z} \ | \ s_j \leq c_j\} \times D^3, c_j \in \mathbb{N}$ the state space consisting of elements $(\tilde{s}, d) = ((s, d_{last}, d_{hist}), d)$;
 		\item[2.] $ A \coloneqq  \{0, ..., \rho_{max} \} \times \mathbb{N}_0^k$ the action space consisting of elements $a = (a_0, ..., a_k)$;
-		\item[3.] $ \mathcal{X} (\tilde{s}) \coloneqq \{0, ..., \rho_{max} \} \times \{a \in \mathbb{N}_0^k \ | \ \sum_{j=1}^{k}a_j \leq s_0  \}$, the set of all feasible actions in a state $\tilde{s}$ and $\mathcal{X} \coloneqq \{(\tilde{s}, d , a) \in S \times D^3 \times A \ | \ a \in \mathcal{X} (\tilde{s})\}$;
-		\item[4.] $ T: S \times D^3 \times A \rightarrow S$ the transition function defined by Eq.~\eqref{eq:transition_function};
+		\item[3.] $ \mathcal{X} (\tilde{s}) \coloneqq \{0, ..., \rho_{max} \} \times \{a \in \mathbb{N}_0^k \ | \ \sum_{j=1}^{k}a_j \leq s_0  \}$, the set of all feasible actions in a state $\tilde{s}$ and $\mathcal{X} \coloneqq \{(\tilde{s}, d , a) \in \tilde{S} \times D \times A \ | \ a \in \mathcal{X} (\tilde{s})\}$;
+		\item[4.] $ T: \tilde{S}  \times D \times A \rightarrow S$ the transition function defined by Eq.~\eqref{eq:transition_function};
 %			\begin{equation*}
 %				\begin{split}
 %					T(s, d, a) \coloneqq &(\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \\
@@ -143,8 +143,8 @@ Furthermore we chose a discounting factor $\gamma \in (0,1)$ that can be interpr
 %					&\min\{s_k + a_k - d_k, c_k \});
 %				\end{split}
 %			\end{equation*}
-		\item[5.] $ Q: \mathcal{X} \times S \times D^3 \rightarrow [0,1]  $ the transition probabilities with $Q(\tilde{s}', d'\ |\ \tilde{s}, d, a) \coloneqq q_d(d')$ for $\tilde{s}' = T(\tilde{s}, d, a)$ and $0$ otherwise;
-		\item[6.] $ r: S \times D^3 \times A \rightarrow \mathbb{R} $ the one-step reward function as described in Eq.~\eqref{eq:one_step_reward};
+		\item[5.] $ Q: \mathcal{X} \times \tilde{S} \times D \rightarrow [0,1]  $ the transition probabilities with $Q(\tilde{s}', d'\ |\ \tilde{s}, d, a) \coloneqq q_d(d')$ for $\tilde{s}' = T(\tilde{s}, d, a)$ and $0$ otherwise;
+		\item[6.] $ r: \tilde{S} \times D \times A \rightarrow \mathbb{R} $ the one-step reward function as described in Eq.~\eqref{eq:one_step_reward};
 %			\begin{equation*}
 %				\begin{split}
 %					r(s, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
@@ -160,7 +160,7 @@ For the calculation of the expected discounted revenue for each tuple $(\tilde{s
 	\begin{split}
 		V(\tilde{s},d) = &\max_{a \in \mathcal{X} (\tilde{s})} \{ r(\tilde{s}, d, a)  \\
 		&+ \gamma \sum_{d' \in D} q_d(d') V(T(\tilde{s}, d, a), d') \}, \\ 
-		&\tilde{s} \in S \times D^2, d \in D. 
+		&\tilde{s} \in \tilde{S}, d \in D. 
 	\end{split}
 \end{equation}
 \section{The Agent}
