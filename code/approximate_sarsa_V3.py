@@ -43,6 +43,7 @@ class approximate_sarsa_agent_V3(object):
         theta_size =  self.theta.shape[0]
         action_dim = action.ndim
         store_cap = self.env.cap_store
+        cap_store = self.env.cap_store.reshape(n_stores + 1, 1)
         
         # Initialize phi
         if action_dim==1:
@@ -53,8 +54,10 @@ class approximate_sarsa_agent_V3(object):
             
         # Create simple estimates for demand and storage levels in the next episode
         d_next = (2*state[n_stores+1:2*n_stores+1] - state[2*n_stores+1:3*n_stores+1])
-        s_next = ((state[0:n_stores+1] - np.hstack((0, d_next))).T + action).T
-        
+        s_next = ((state[0:n_stores + 1] - np.hstack((0, d_next))).T + action).T
+        s_next[0] -= np.sum(action[:, 1:], axis=1)
+        s_next = np.minimum(s_next, cap_store)
+
         # Save size of s_next
         s_shape = (s_next.shape[0]-1, s_next.shape[1])
 
@@ -82,6 +85,8 @@ class approximate_sarsa_agent_V3(object):
         phi[7,:] = (s_next[0] >= np.sum(d_next))*1
         # production rest
         production_rest = (state[0] + action[:, 0] - sum(action[:, 1:].T))
+        if production_rest != s_next[0]:
+            print ("error calculating s_next or production rest")
         #phi[8,:] = production_rest
         # Stock will be in the % after producing and sending
        # for period in range(1):
@@ -99,9 +104,8 @@ class approximate_sarsa_agent_V3(object):
         #        phi[8 + period * 2, :] = 0
         #        phi[9 + period * 2, :] = 0
         # Stock will be in the % after sending and possible demand
-        stock_rest = state[0] + action[:, 0] - sum(action[:, 1:].T)
         for i in range(5):
-            phi[18+i, :] = np.logical_and(stock_rest > (store_cap[1] * 0.2 * i),  stock_rest <= (store_cap[1] * 0.2 * (i + 1)))
+            phi[18+i, :] = np.logical_and(s_next[1] > (store_cap[1] * 0.2 * i),  s_next[1] <= (store_cap[1] * 0.2 * (i + 1)))
         # Format output in case of single action input
         if action_dim == 1:
             return phi.reshape((theta_size,))
