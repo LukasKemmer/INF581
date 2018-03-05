@@ -53,7 +53,8 @@ class approximate_sarsa_agent(object):
         # Create simple estimates for demand and storage levels in the next episode
         d_next = (2*state[n_stores+1:2*n_stores+1] - state[2*n_stores+1:3*n_stores+1])
         s_next = ((state[0:n_stores+1] - np.hstack((0, d_next))).T + action).T
-        
+        s_next[0] -= np.sum(action[:, 1:], axis=1)
+        s_next = np.minimum(s_next, cap_store)
         # Save size of s_next
         s_shape = (s_next.shape[0]-1, s_next.shape[1])
 
@@ -66,49 +67,49 @@ class approximate_sarsa_agent(object):
         # Add bias
         phi[0,:] = 1
             
-        # Reward from sales
+        # 1. Reward from sales
         phi[1,:] = np.sum(d_next)*price
             
-        # Production cost
+        # 2. Production cost
         phi[2,:] = action[:,0]*prod_cost
             
-        # Store cost
+        # 3. Store cost
         phi[3:n_stores+4,:] = -np.maximum(np.zeros(s_next.shape), s_next) * store_cost
         
-        # Penalty cost
+        # 4. Penalty cost
         phi[n_stores+4:2*n_stores+4,:] = np.minimum(np.zeros(s_shape), s_next[1:,:]) * penalty_cost
             
-        # Transportation cost
+        # 5. Transportation cost
         phi[2*n_stores+4:3*n_stores+4,:] = -np.ceil(action[:,1:] / cap_truck).T * truck_cost
         
-        # Store cost for scenarios
+        # 6. Store cost for scenarios
         phi[3*n_stores+4:4*n_stores+5,:] = -np.maximum(np.zeros(s_next.shape), s_next_minus) * store_cost
         phi[4*n_stores+5:5*n_stores+6,:] = - np.maximum(np.zeros(s_next.shape), s_next_plus) * store_cost
         
-        # Penalty cost for scenarios
+        # 7. Penalty cost for scenarios
         phi[6*n_stores+6:7*n_stores+6,:] = np.minimum(np.zeros(s_shape), s_next_minus[1:,:]) * penalty_cost
         phi[7*n_stores+6:8*n_stores+6,:] = np.minimum(np.zeros(s_shape), s_next_plus[1:,:]) * penalty_cost
         
-        # Reward from scenarios
+        # 8. Reward from scenarios
         phi[8*n_stores+6,:] = (np.sum(d_next)+len(d_next))*price
         phi[8*n_stores+7,:] = (np.sum(d_next)-len(d_next))*price
                 
-        # Factory stock can satisfy next estimated demand
+        # 9. Factory stock can satisfy next estimated demand
         phi[8*n_stores+8,:] = (s_next[0] >= np.sum(d_next))*1
         
-        # Positive stock in warehouses
+        # 10. Positive stock in warehouses
         phi[8*n_stores+9:9*n_stores+9,:] = (s_next[1:n_stores+1,:] >= 0)*1
         
-        # Estimate of demand in next period and quadratic demand in next period
+        # 11. Estimate of demand in next period and quadratic demand in next period
         phi[9*n_stores+9:10*n_stores+9,:] = d_next.reshape(n_stores, 1)
         phi[10*n_stores+9:11*n_stores+9,:] = np.power(d_next, 2).reshape(n_stores, 1)
         
-        # Squared difference from quantiles of store capacity
+        # 12. Squared difference from quantiles of store capacity
         phi[11*n_stores+9:12*n_stores+10,:] = np.power(s_next - 1*cap_store/4, 2)
         phi[12*n_stores+10:13*n_stores+11,:] = np.power(s_next - 2*cap_store/4, 2)
         phi[14*n_stores+11:15*n_stores+12,:] = np.power(s_next - 3*cap_store/4, 2)
         
-        # Production able to satisfy demand?
+        # 13. Production able to satisfy demand?
         phi[15*n_stores+12,:] = action[:,0] - np.sum(d_next)
         phi[15*n_stores+13,:] = action[:,0] - np.sum(d_next + len(d_next))
         phi[15*n_stores+14,:] = action[:,0] - np.sum(d_next - len(d_next))
