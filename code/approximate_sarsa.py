@@ -8,6 +8,7 @@ Created on Sat Feb 24 13:06:37 2018
 import numpy as np
 import numba as nb
 import matplotlib.pyplot as plt
+from scipy.stats import linregress
 
 class approximate_sarsa_agent(object):
     
@@ -16,10 +17,10 @@ class approximate_sarsa_agent(object):
         self.env = env
         
         # Initialize theta random
-        self.theta = np.random.rand(11*env.n_stores+9)#np.ones(env.n_stores+2)#
-        self.thetas = [self.theta.copy()]
+        self.theta_len = 15*env.n_stores+12
+        self.theta = np.zeros(self.theta_len)#np.ones(env.n_stores+2)#
         # Initialize the stepsize alpha
-        self.alpha = 1e-5
+        self.alpha = 1e-7
         # Initialize Epsilon for epsilon greedy
         self.epsilon = 0.1
         # Initialize agent parameters for stepsize rule        
@@ -40,14 +41,14 @@ class approximate_sarsa_agent(object):
         cap_truck = self.env.cap_truck
         truck_cost = self.env.truck_cost.reshape(n_stores,1)
         action_dim = action.ndim
-        #store_cap = self.env.cap_store
+        cap_store = self.env.cap_store.reshape(n_stores+1, 1)
         
         # Initialize phi
         if action_dim==1:
-            phi = np.zeros((11*n_stores+9, 1))
+            phi = np.zeros((self.theta_len, 1))
             action = action.reshape(1, n_stores+1) # reshape action so matrix operation is possible
         else:
-            phi = np.zeros((11*n_stores+9, action.shape[0]))
+            phi = np.zeros((self.theta_len, action.shape[0]))
             
         # Create simple estimates for demand and storage levels in the next episode
         d_next = (2*state[n_stores+1:2*n_stores+1] - state[2*n_stores+1:3*n_stores+1])
@@ -73,7 +74,7 @@ class approximate_sarsa_agent(object):
             
         # Store cost
         phi[3:n_stores+4,:] = -np.maximum(np.zeros(s_next.shape), s_next) * store_cost
-
+        
         # Penalty cost
         phi[n_stores+4:2*n_stores+4,:] = np.minimum(np.zeros(s_shape), s_next[1:,:]) * penalty_cost
             
@@ -94,23 +95,40 @@ class approximate_sarsa_agent(object):
                 
         # Factory stock can satisfy next estimated demand
         phi[8*n_stores+8,:] = (s_next[0] >= np.sum(d_next))*1
-            
+        
         # Positive stock in warehouses
         phi[8*n_stores+9:9*n_stores+9,:] = (s_next[1:n_stores+1,:] >= 0)*1
         
         # Estimate of demand in next period and quadratic demand in next period
-        phi[9*n_stores+9:10*n_stores+9,:] = d_next
-        phi[10*n_stores+9:11*n_stores+9,:] = np.power(d_next, 2)
+        phi[9*n_stores+9:10*n_stores+9,:] = d_next.reshape(n_stores, 1)
+        phi[10*n_stores+9:11*n_stores+9,:] = np.power(d_next, 2).reshape(n_stores, 1)
+        
+        # Squared difference from quantiles of store capacity
+        phi[11*n_stores+9:12*n_stores+10,:] = np.power(s_next - 1*cap_store/4, 2)
+        phi[12*n_stores+10:13*n_stores+11,:] = np.power(s_next - 2*cap_store/4, 2)
+        phi[14*n_stores+11:15*n_stores+12,:] = np.power(s_next - 3*cap_store/4, 2)
         
         # Format output in case of single action input
         if action_dim ==1:
-            return phi.reshape((11*n_stores+9,))
+            return phi.reshape((self.theta_len,))
             
         return phi
-            
+
+    def phi2(self, state, action):
+        phi = np.zeros((81,1))
+        dif = (state[:self.env.n_stores+1]-self.env.cap_store/2)
+        
+        phi[(a*self.dim+1):((a+1)*self.dim)] = np.exp(-.5*(pow(dif / (1.*self.sigmasq), 2.0)).sum(axis=1))
+        phi[a*self.dim] = 1.
+        pass
+        
+    
     def get_action(self, state):
         # Find all possible actions
         actions = np.array(self.env.action_space())
+        
+        # Select allowed actions
+        #actions = self.allowed_actions(actions)
         
         # With probability epsilon, select random action
         if np.random.rand() < self.epsilon:
@@ -122,7 +140,10 @@ class approximate_sarsa_agent(object):
     def update(self, state, action, reward, state_new, action_new):
         # Calculate delta
         delta = reward + self.env.gamma * np.dot(self.theta, self.phi(state_new, action_new)) - np.dot(self.theta, self.phi(state, action))
-
+        
+        # Clip delta in case of extreme values
+        delta = np.clip(delta, -1e50, 1e50)
+        
         # Update theta
         self.theta += self.alpha * delta * self.phi(state, action)        
         
@@ -161,14 +182,29 @@ class approximate_sarsa_agent(object):
         plt.plot(alphas)
         fig.add_subplot(6, 1, 5)
         plt.plot(epsilons)
-
+        
+        # Plot regression over rewards
+        reg = linregress(np.arange(len(rewards)), rewards)
+        plt.plot(np.arange(len(rewards)), rewards, 'o', label='original data')
+        plt.plot(np.arange(len(rewards)), reg.intercept + reg.slope*np.arange(len(rewards)), 'r', label='fitted line')
+        
+    def allowed_actions(self, actions):
+        result = []
+        for i in np.arange(actions.shape[0]):
+            if actions[i,0] not in [0, 3, 5]:
+                continue
+            if actions[i,1] not in [0, 5, 10]:
+                continue
+            result.append(actions[i,:])
+        return np.array(result)
+    
 @nb.njit(cache=True)
 def update_epsilon(epsilon, n):
-    return epsilon#stc_stepsize(epsilon)     
+    return stc_stepsize(n)
         
 @nb.njit(cache=True)
 def update_alpha(alpha, n):
-    return alpha #mcclains_formular(alpha, target=1e-5)
+    return stc_stepsize(n, alpha_0=1e-5, a=50, b=10, beta=0.95)
 
 @nb.njit(cache=True)
 def geometric_stepsize(alpha, beta=0.99):
@@ -183,5 +219,5 @@ def mcclains_formular(alpha, target=0.005):
     return alpha/(1+alpha-target)
 
 @nb.njit(cache=True)
-def stc_stepsize(n, alpha_0=0.5, a=150, b=50, beta=0.7):
+def stc_stepsize(n, alpha_0=0.5, a=150, b=50, beta=0.65):
     return alpha_0 * (b/n+a) / (b/n+a+np.power(n, beta))

@@ -49,7 +49,7 @@ class q_s_agent(object):
         '''
         pass
     
-    def create_plots(self):
+    def create_plots(self, rewards):
         '''
             Plots parameters of agent
         '''

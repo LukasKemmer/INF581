@@ -20,7 +20,7 @@
 \usepackage{amsthm}
 % Theorems and definitions
 \theoremstyle{plain}
-\newtheorem{thm}{Theorem}[section]
+\newtheorem{thm}{Theorem}
 \theoremstyle{definition}
 \newtheorem{defn}[thm]{Definition}
 % Algorithm description
@@ -29,6 +29,8 @@
 \makeatletter
 \def\BState{\State\hskip-\ALG@thistlm}
 \makeatother
+% Figures
+\usepackage{svg}
 % End of added stuff by lukas
 
 \begin{document}
@@ -47,41 +49,68 @@
 % Each section begins with a \section{title} command
 \section{Introduction}
 
-Describe what you did. Provide access to your anonymized code\footnote{Our code is available here: \url{http://anonymouslinktoyourcode.zip}}.
+%Describe what you did. Provide access to your anonymized code\footnote{Our code is available here: \url{http://anonymouslinktoyourcode.zip}}.
 
-Note that results should be reproducible using the technologies from the labs (i.e., Python, and selecting among Scikit-Learn, OpenAI Gym, TensorFlow, PyGame, \ldots).
+%Note that results should be reproducible using the technologies from the labs (i.e., Python, and selecting among Scikit-Learn, OpenAI Gym, TensorFlow, PyGame, \ldots).
 
-Do not change the formatting (columns, margins, etc). Hint: shared tools like \texttt{http://sharelatex.com/} and \texttt{http://overleaf.com/} are great tools for collaborating on a multi-author report in latex. If you wish to use Word, base it on the IEEE template\footnote{\url{https://www.ieee.org/publications_standards/publications/conferences/2014_04_msw_a4_format.doc}} and convert to \texttt{pdf} for submission. 
+%Do not change the formatting (columns, margins, etc). Hint: shared tools like \texttt{http://sharelatex.com/} and \texttt{http://overleaf.com/} are great tools for collaborating on a multi-author report in latex. If you wish to use Word, base it on the IEEE template\footnote{\url{https://www.ieee.org/publications_standards/publications/conferences/2014_04_msw_a4_format.doc}} and convert to \texttt{pdf} for submission. 
 
+In the following paper we implement three different reinforcement learning agents and evaluate their performance within a supply chain environment. All the code used to create the results presented in this paper can be found here \footnote{Our code is available here:\url{http://anonymouslinktoyourcode.zip}}. \newline
+The supply chain optimization environment represents a problem faced by companies whose supply chain consists of a factory and multiple warehouses (so called hub-and-spoke networks as described by \cite{MFL}). The main decision that needs to be made in these settings is how many products should be produced in the factory and how much stock should be build up in the warehouses. Seasonal demand can further complicate the decision problem since it might require the companies to start building up stock early so that high demands in the future can be satisfied (e.g. think about christmas where the stock of eggnog needs to be build up during november and december to be able to satisfy the high demand levels during the holidays). This requirement for mid- to long-term planning indicates that the problem can be formulated as a multi-step decision problem and further exhibits a weak signal because the reward for an early build-up of stock will only be realized in the future when the actual demand reaches its maximum. \newline
+Even for small supply chain networks we find that due to the curses of dimensionality, as described by \cite{PowellADP}, the state- and action-spaces of the respective decision problems become unfeasebly large. Therefore we turn to function-approximation and policy-search methods of reinforcement learning that are less affected by these problems. In our case we chose approximate SARSA and the REINFORCE algorithm as a basis for the agents.
 \section{Background and Related Work}
-
-Elaborate (in your own words) the background material required to understand your work. It should cover a subset of the topics touched upon in the course. You are encouraged to cite topics in lectures, e.g., structured output prediction in \cite{LectureSOP}, book chapters, e.g., Chapter 9 from \cite{Barber}, or articles from the literature, e.g., \cite{Astar,DeepMindSC2}. Basically, you should prepare the reader to understand what you are about to present in the following sections. Eq.~\eqref{eq:MAP} shows a random equation.
-\begin{equation}
-	\label{eq:MAP}
+%Elaborate (in your own words) the background material required to understand your work. It should cover a subset of the topics touched upon in the course. You are encouraged to cite topics in lectures, e.g., structured output prediction in \cite{LectureSOP}, book chapters, e.g., Chapter 9 from \cite{Barber}, or articles from the literature, e.g., \cite{Astar,DeepMindSC2}. Basically, you should prepare the reader to understand what you are about to present in the following sections. Eq.~\eqref{eq:MAP} shows a random equation.
+%\begin{equation}
+%	\label{eq:MAP}
 	% Note the example \newcommand s defined above which make it faster to write latex math
-	\ypred = \argmax_{\y \in \{0,1\}} p(\y|\x)
-\end{equation}
-
-\section{The Environment}
-In this report we analyze a supply-chain optimization environment that we regard over an infinite amount of periods $t = 0, ...$. The environment consists of one factory (indexed by $0$) and up to $k \in \mathbb{N}$ warehouses (indexed by $j=1,...,k$) where in each period it needs to be decided how many units of a product (e.g. butter) should be produced and how many should be shipped to the individual warehouses. A representation of a network with 5 warehouses is depicted in figure \ref{fig:model_example}. 
+%	\ypred = \argmax_{\y \in \{0,1\}} p(\y|\x)
+%\end{equation}
+The supply chain optimization problem presented in this paper will be modeled as a markov decision process (MDP). Furthermore we rely on the approximate SARSA and REINFORCE algorithms to design agents capable of finding a good strategy to navigate within the environment. \newline
+MDPs are multi-step stochastic decision problems that rely on the markov property which implies that the transition probability $P(s_{n+1} \ | \  s_n)$ between two states $s_{n+1}$ and $s_n$ only relies on the current state $s_n$. We describe the MDP similar to \cite{Moritz} and \cite{PowellADP} as an eight-tuple $(S, D, A, \mathcal{X}, T, Q, r, \gamma)$ consisting of a state-space $S$, a random environment process $D$, an action space $A$, a set of feasible actions $\mathcal{X}$, a transition function $T$, transition probabilities $Q$, a one-step reward function $r$ and some discount factor $\gamma$. \newline
+The designed agents are based on the blueprints for the approximate SARSA and REINFORCE algorithm from \cite{LectureDRL}. We compare the performance of these reinforcement learning algorithms with an agent that acts according to a fixed heuristic based on the $(\varsigma, Q)$-Policy \footnote{In the literature this policy is usually called $(\varsigma, Q)$-Policy. We chose a slightly different name to avoid notation conflicts in our model description.} as described by \cite{sQ}. $(\varsigma, Q)$-Policies induce a simple replenishment strategy where the stock of a warehouse will be replenished by some amount $Q$ as soon as it falls under a threshold $\varsigma$. A basic visualization of the $(\varsigma, Q)$-Policy is depicted in Figure~\ref{sQ}.
 \begin{figure}[h]
-	\label{fig:model_example}
+	\centering
+	\includegraphics[width=0.8\columnwidth]{sQ.jpg}
+	\caption{\label{sQ} Schematic visualization of a $(\varsigma, Q)$-Policy for a single warehouse.}
+\end{figure}
+\newline
+Furthermore we use several different stepsize formulars from \cite{PowellADP} that are used to update some of the agents parameters such as the learning rate $\alpha$. The idea of specific stepsize rules is to allow the agent to go through a longer learning phase in the beginning with higher learning rates and then converge in the long term to stepsizes close to $0$. %This behavior can be seen in \ref{fig:stc_stepsize}. that shows the learning rates generated from 
+Among others we use a so called search-then-converge stepsize rule as presented in \cite{PowellADP} where the learning rate in the $n^{th}$ iteration is calculated by
+\begin{equation}
+	\alpha_n = \alpha_0 \frac{\frac{b}{n} + a}{ \frac{b}{n} + a + n^{\beta}}
+\end{equation}
+with some parameters $\alpha_0, b, a$ and $\beta$ that can be set by the user based on the required behavior of the stepsize.
+%\begin{figure}[h]
+%	\label{fig:stc_stepsize}
+%	\centering
+%	\includegraphics[width=0.6\columnwidth]{STC.png}
+%	\caption{\label{stc} Learning rates of the search then converge stepsize for $24.000$ iterations.}
+%\end{figure}
+\section{The Environment}
+We will model the environment as a MDP that we regard over an infinite number of periods $t = 0, 1, ...$ . The environment consists of one factory (indexed by $0$) and up to $k \in \mathbb{N}$ warehouses (indexed by $j=1,...,k$) where in each period it needs to be decided how many units of a product (e.g. butter) should be produced and how many should be shipped to the individual warehouses. A representation of a network with 5 warehouses is depicted in Figure~\ref{model_example}. 
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.4\columnwidth]{model.png}
-	\caption{\label{a_figure}Example of a supply chain network with $k=5$ warehouses ($s_1, .., s_5$) and the factory ($s_0$).}
+	\caption{\label{model_example}Example of a supply chain network with $k=5$ warehouses ($s_1, .., s_5$) and the factory ($s_0$).}
 \end{figure}
-The state space consists of $k+1$ elements describing the current stock levels of the factory and the warehouses ($s_j, j=0,...,k$), where each stock level is limited by some capacity $c_j \in \mathbb{N}$. Note that this implies that the factory itself can also build up stock. Furthermore we include an environment process $D \in \{0,..., 4\}$ describing the (stochastic) demand $d_j$ at each warehouse $j = 1,...,k$ with transition probabilities $q_d(d')$ that are unknown by the agent. We assume a discretized version of a sinus-function and some shocks $\epsilon$ where the demand follows a model 
+The state space consists of $k+1$ elements describing the current stock levels of the factory and the warehouses ($s_j, j=0,...,k$), where each stock level is limited by some capacity $c_j \in \mathbb{N}$. Note that this implies that the factory itself can also build up stock. Furthermore we assume an environment process with states $d \in D \in \{0,..., d_{max}\}^k, d_{max} \in \mathbb{N}$ describing the (stochastic) demand $d_j$ at each warehouse with transition probabilities $q_d(d')$ that are unknown by the agent. We assume a discretized version of a sinus-function and some shocks $\epsilon$ where the demand follows a model 
 \begin{equation}
-	d_{i,t} = \left\lceil 1.5 \sin\left( \frac{2 \pi t}{24} + i\right) + 1.5 + \epsilon \right\rceil, i = 1,..., k
+	\begin{split}
+		d_{i,t} = &\left\lceil \frac{d_{max}}{2} \sin\left( \frac{2 \pi (t + 2i) }{12}\right) + \frac{d_{max}}{2} + \epsilon_{i,t} \right\rceil
+	\end{split}
 \end{equation}
-with $\left\lceil \cdot \right\rceil$ the ceiling function, $P(\epsilon=0) = P(\epsilon=1) = 0.5$ and $t \in \mathbb{N}$. We will include $d \in D$ in our state space since the demand $d_{i, t}$ is correlated with the demand $d_{i, t+1}$. Note that each tupel $(s, d)$ at some point in time $t + 1$ consists of the current state and the last observed demand ($(s_{t+1}, d_t)$). In each period the agent can now set the factories production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ (with a maximum production of $\rho_{max} \in \mathbb{N}$) aswell as the number of products shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the state transitions $(s, d, a) \rightarrow T(s,d,a)$ by
+with $\left\lceil \cdot \right\rceil$ the ceiling function and $P(\epsilon_{i,t}=0) = P(\epsilon_{i,t}=1) = 0.5$. We will include $d_{last}, d_{hist} \in D$ in our state space where for some time $t$ we have the tuple $\tilde{s} = (s, d_{last}, d_{hist})$ with $s = s_t$, $d_{last} = d_{t-1}$ and $d_{hist} = d_{t-2}$. Note that this implies that the demand $d_t$ of period $t$ is not observed by the agent. This means, that the demand in a period $t$ will be realized after observing the stock levels $s_t$ and can only be observed in the next period $t+1$.
+%since the demand $d_{i, t}$ is correlated with the demand $d_{i, t+1}$. Note that each tupel $(s, d, d_{hist})$ at some point in time $t + 1$ consists of the current state, the last observed demand and the  \left($(s_{t+1}, d_t, d_{t-1})$\right). 
+The reason we add the old demands to the state space is to allow the agent to have a simple understanding of the demand history to be able to gather a basic understanding of the demands movement. In each period the agent can now set the factories production level for the next period $a_0 \in \{0,.., \rho_{max}\}$ (with a maximum production of $\rho_{max} \in \mathbb{N}$) aswell as the number of products shipped to each location $a_j \in \mathbb{N}^k$ that is naturally limited by the current storage level in the factory ($\sum_{j=1}^{k}a_j \leq s_0$). Based on this information and the demand $d$ we can now describe the state transitions $(\tilde{s}, d, a) \rightarrow T(\tilde{s},d,a)$ by
 \begin{equation}
 \label{eq:transition_function}
 	\begin{split}
-		T(s, d, a) \coloneqq (&\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \\
+		T(\tilde{s}, d, a) \coloneqq (&\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \\
 		&\min\{s_1 + a_1 - d_1, c_1 \}, \\
 		&\ ... \\
-		&\min\{s_k + a_k - d_k, c_k \}).
+		&\min\{s_k + a_k - d_k, c_k \}, \\
+		&d, \\
+		&d_{last}).
 \end{split}
 \end{equation}
 %\begin{equation}
@@ -94,17 +123,17 @@ The reward within each period consists of the revenue from sold products at a fi
 \begin{equation}
 \label{eq:one_step_reward}
 	\begin{split}
-		r(s, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
-		&+\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil,
+		r(\tilde{s}, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
+		&+\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil.
 	\end{split}
 \end{equation}
-with $\left\lceil \cdot \right\rceil$ the ceiling function. Furthermore we chose a discounting factor $\gamma \in (0,1)$ that can be interpreted e.g. as a result of inflation. \newline Based on this model description we can now formulate the task as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(S, D, A, \mathcal{X}, T, Q, r, \gamma)$ with
+Furthermore we chose a discounting factor $\gamma \in (0,1)$ that can be interpreted e.g. as a result of inflation. \newline Based on this model description we can now formulate the task as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(S, I, A, \mathcal{X}, T, Q, r, \gamma)$ with
 \begin{defn} \label{def:modell} \
 	\begin{itemize}
-		\item[1.] $S \times D \coloneqq \prod\limits_{j=0}^{k} \{s_j \in \mathbb{Z} \ | \ s_j \leq c_j\} \times D, c_j \in \mathbb{N}$ the state space consisting of elements $(s,d) = ((s_0, ... , s_k), (d_1, ..., d_k))$;
+		\item[1.] $S \times D^3 \coloneqq \prod\limits_{j=0}^{k} \{s_j \in \mathbb{Z} \ | \ s_j \leq c_j\} \times D^3, c_j \in \mathbb{N}$ the state space consisting of elements $(\tilde{s}, d) = ((s, d_{last}, d_{hist}), d)$;
 		\item[2.] $ A \coloneqq  \{0, ..., \rho_{max} \} \times \mathbb{N}_0^k$ the action space consisting of elements $a = (a_0, ..., a_k)$;
-		\item[3.] $ \mathcal{X} (s) \coloneqq \{0, ..., \rho_{max} \} \times \{a \in \mathbb{N}_0^k \ | \ \sum_{j=1}^{k}a_j \leq s_0  \}$, the set of all feasible actions in a state $s$ and $\mathcal{X} \coloneqq \{(s, d , a) \in S \times D \times A \ | \ a \in \mathcal{X} (s)\}$;
-		\item[4.] $ T: S \times D \times A \rightarrow S$ the transition function defined by Eq.~\eqref{eq:transition_function};
+		\item[3.] $ \mathcal{X} (\tilde{s}) \coloneqq \{0, ..., \rho_{max} \} \times \{a \in \mathbb{N}_0^k \ | \ \sum_{j=1}^{k}a_j \leq s_0  \}$, the set of all feasible actions in a state $\tilde{s}$ and $\mathcal{X} \coloneqq \{(\tilde{s}, d , a) \in S \times D^3 \times A \ | \ a \in \mathcal{X} (\tilde{s})\}$;
+		\item[4.] $ T: S \times D^3 \times A \rightarrow S$ the transition function defined by Eq.~\eqref{eq:transition_function};
 %			\begin{equation*}
 %				\begin{split}
 %					T(s, d, a) \coloneqq &(\min\{s_0 + a_0 - \sum_{j=1}^{k}a_j, c_0 \}, \\
@@ -113,8 +142,8 @@ with $\left\lceil \cdot \right\rceil$ the ceiling function. Furthermore we chose
 %					&\min\{s_k + a_k - d_k, c_k \});
 %				\end{split}
 %			\end{equation*}
-		\item[5.] $ Q: \mathcal{X} \times S \times D \rightarrow [0,1]  $ the transition probabilities with $Q(s', d'\ |\ s, d, a) \coloneqq q_d(d')$ for $s' = T(s, d, a)$ and $0$ otherwise;
-		\item[6.] $ r: S \times D \times A \rightarrow \mathbb{R} $ the one-step reward function as described in Eq.~\eqref{eq:one_step_reward};
+		\item[5.] $ Q: \mathcal{X} \times S \times D^3 \rightarrow [0,1]  $ the transition probabilities with $Q(\tilde{s}', d'\ |\ \tilde{s}, d, a) \coloneqq q_d(d')$ for $\tilde{s}' = T(\tilde{s}, d, a)$ and $0$ otherwise;
+		\item[6.] $ r: S \times D^3 \times A \rightarrow \mathbb{R} $ the one-step reward function as described in Eq.~\eqref{eq:one_step_reward};
 %			\begin{equation*}
 %				\begin{split}
 %					r(s, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
@@ -124,22 +153,21 @@ with $\left\lceil \cdot \right\rceil$ the ceiling function. Furthermore we chose
 		\item[7.] $\gamma \in (0, 1) $ the discounting factor.
 	\end{itemize}
 \end{defn}
-For the calculation of the expected discounted revenue for each tuple $(s, d)$ we obtain the value function $V$ with\\
+For the calculation of the expected discounted revenue for each tuple $(\tilde{s}, d)$ we obtain the value function $V$ with\\
 \begin{equation}
 	\label{eq:ValueFunction}
 	\begin{split}
-		V(s,d) = &\max_{a \in \mathcal{X} (s)} \{ r(s, d, a)  \\
-		&+ \gamma \sum_{d' \in D} q_d(d') V(T(s, d, a), d') \}, \\ 
-		&s \in S, d \in D. 
+		V(\tilde{s},d) = &\max_{a \in \mathcal{X} (\tilde{s})} \{ r(\tilde{s}, d, a)  \\
+		&+ \gamma \sum_{d' \in D} q_d(d') V(T(\tilde{s}, d, a), d') \}, \\ 
+		&\tilde{s} \in S \times D^2, d \in D. 
 	\end{split}
 \end{equation}
 \section{The Agent}
-
 %The agent you designed for your environment. Justify your choice and design and explain briefly how you implemented/configured it. Naturally, if you took a %ready-made environment, you should invert relatively much more effort into this section than the previous one.
-In this paper we evaluated the performance of three agents based on different algorithms: a heuristic based on the $(s^{-}, Q)$-Policy (add ref.) that we use as the baseline for performance evaluation, an approximate SARSA (add ref.) algorithm  and an implementation of the REINFORCE (add ref.) algorithm. \newline
-\textbf{The $(s^{-}, Q)$-Policy} based agent is not smart in the way that it does not learn over time. Due to the popularity of the $(s^{-}, Q)$-Policy in practice we use it as a baseline for the performance evaluation of the other agents. In the $(s^{-}, Q)$ policy we iterate over $s_1, ..., s_k$ and replenish the respective warehouses by some amount $Q_i$ if the current stock is below a level $s_i^{-}$ and there is still stock left in the factory $s_0$. At the and we set the production level for the next period to $Q_0$ if the new $s_0 < s_0^{-}$ and $0$ otherwise. The thresholds $s^{-}$ and replenishment levels $Q$ need to be set by the user when initializing the agent.
+In this paper we evaluated the performance of three agents based on different algorithms: a heuristic based on the $(\varsigma, Q)$-Policy that we use as the baseline for performance evaluation, an approximate SARSA algorithm and an implementation of the REINFORCE algorithm. \newline
+\textbf{The $(\varsigma, Q)$-Policy} based agent is not smart in the way that it does not learn over time. Due to the popularity of the $(\varsigma, Q)$-Policy in practice we use it as a baseline for performance evaluation of the other agents. In the heuristic we iterate over $s_1, ..., s_k$ and replenish the respective warehouses by some amount $a_i = Q_i$ if the current stock is below a level $\varsigma_i$ and there is still stock left in the factory $s_0$. At the end we set the production level for the next period to $Q_0$ if $s_0 - \sum_{i=1}^{k}a_i < \varsigma_0$ and $0$ otherwise. The thresholds $\varsigma$ and replenishment levels $Q$ need to be set by the user when initializing the agent.
 \newline
-\textbf{Approximate SARSA} uses a linear approximation $Q_{\theta}(s, a) = \theta^T \phi(s,a)$ of the actual Q-function $Q^{\pi}$. We chose this method as it solves the problem of exponentially growing state- and action- spaces that is likely to occur in multidimensional environments. Furthermore it allows us to use our knowledge of the environment (especially the structure of the reward function $r(s, d, a)$) to design $\phi(s, a)$ such that it preserves some of the MDPs structure. The algorithm is implemented as depicted in (add ref.). %Algorithm \ref{algo:approximate_sarsa}.
+\textbf{Approximate SARSA} uses a linear approximation $Q_{\theta}(\tilde{s}, a) = \theta^T \phi(\tilde{s},a)$ of the actual Q-function $Q^{\pi}$. We chose this method as it solves the problem of exponentially growing state- and action- spaces that is likely to occur in multidimensional environments. Furthermore it allows us to use our knowledge of the environment (especially the structure of the reward function $r(\tilde{s}, d, a)$) to design $\phi(\tilde{s}, a)$ such that it preserves some of the MDPs structure. The algorithm is implemented as depicted in (add ref.). %Algorithm \ref{algo:approximate_sarsa}.
 %\begin{algorithm}
 %	\label{algo:approximate_sarsa}
 %	\caption{Approximate SARSA}\label{euclid}
@@ -163,7 +191,7 @@ In this paper we evaluated the performance of three agents based on different al
 %		\EndProcedure
 %	\end{algorithmic}
 %\end{algorithm}
-The underlying intuiton for the definition of $\phi$ is to value states $s$ based on an approximation of the individual storage levels and the sales price $p$. We assume that the stock in each warehouse $s_1,..., s_k$ will be roughly equivalent to the current stock level minus the current demand (which is used as a proxy of the demand in the next step). For the factory $s_0$ we solely regard the current storage level but deduct the production cost $\kappa_{pr}$ from the sales price. Based on this intuition we can define $\phi: S \times D \times A \rightarrow \mathbb{R}^{k+1}$ by
+The underlying intuiton for the definition of $\phi$ is to value states $\tilde{s}$ based on an approximation of the individual storage levels, recent demands $(d_{last}, d_{hist})$ and the sales price $p$. We assume that the stock in each warehouse $s_1,..., s_k$ will be roughly equivalent to the current stock level minus the current demand (which is used as a proxy of the demand in the next step). For the factory $s_0$ we solely regard the current storage level but deduct the production cost $\kappa_{pr}$ from the sales price. Based on this intuition we can define $\phi: S \times D \times A \rightarrow \mathbb{R}^{k+1}$ by
 \begin{equation}
 	\label{eq:sarsa_phi}
 	\begin{split}
@@ -173,7 +201,11 @@ The underlying intuiton for the definition of $\phi$ is to value states $s$ base
 	&p (s_k + a_k - d_k)p ).
 	\end{split}
 \end{equation} 
-When testing the approximate SARSA algorihm we found that originally the parameters $\theta$ would increase until computations became numerically unstable. To avoid this issue, after each update of $\theta$ we apply the normalization $\theta_i = \theta_i (\sum_{i=1}^{k+1} \theta_i)^{-1}$. Since this only affects the absolute value of $Q_{\theta}(s,a)$ but not its order the normalization does not change the behavior of the agent.
+When testing the approximate SARSA algorihm we found that for some environments the parameters $\theta$ would increase until computations became numerically unstable. To avoid this issue we restrict the temporal difference
+\begin{equation}
+	\delta_n = r(\tilde{s_n}, d_n, a_n) + \gamma \theta_n^T \phi(\tilde{s}_{n+1}, a_{n+1}) - \theta_n^T\phi(\tilde{s}_n, a_n)
+\end{equation}
+that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{50}, +1\mathrm{e}{50}]$.
 \section{Results and Discussion}
 
 
@@ -216,20 +248,39 @@ You deploy your agent in the ALife\footnote{\url{https://github.com/jmread/alife
 % The bibliography:
 \begin{thebibliography}{4}
 
-	\bibitem{Barber} % Book
-	D.~Barber. Bayesian Reasoning and Machine Learning,
-	{\em Cambridge University Press}, 2012.
+	\bibitem{Moritz}
+	L. N.~Moritz. Target Value Criterion in Markov Decision Processes,
+	\textit{Karlsruhe, KIT, Diss.}, 2014.
 
-	\bibitem{LectureSOP} % Web document
-		J.~Read. Lecture III - Structured Output Prediction and Search. \textit{INF581 Advanced Topics in Artificial Intelligence}, 2018.
+	\bibitem{PowellADP}
+	W. B.~Powell,  Approximate Dynamic Programming: Solving the curses of dimensionality,
+	{\em John Wiley \& Sons}, 2007.
 
-	\bibitem{Astar}
-	D.~Mena et al. A family of admissible heuristics for A* to perform inference in probabilistic classifier chains.
-	{\em Machine Learning}, vol. 106, no. 1, pp 143-169, 2017.
+	\bibitem{LectureDRL} % Web document
+	J.~Read. Lecture IX - Deep reinforcement learning. \textit{INF581 Advanced Topics in Artificial Intelligence}, 2018.
 
-	\bibitem{DeepMindSC2}
-	O.~Vinyals et al. StarCraft {II:} {A} New Challenge for Reinforcement Learning.
-	\url{https://arxiv.org/abs/1708.04782}, 2017. 
+	\bibitem{MFL}
+	K.~Furmans, D.~Arnold, Materialfluss in Logistiksystemen,
+	{\em Springer Berlin Heidelberg}, 2009.
+
+	\bibitem{sQ}
+	H.~Tempelmeier, Inventory management in supply networks: problems, models, solutions,
+	{\em Books on Demand}, 2011.
+
+%	\bibitem{Barber} % Book
+%	D.~Barber. Bayesian Reasoning and Machine Learning,
+%	{\em Cambridge University Press}, 2012.
+
+%	\bibitem{LectureSOP} % Web document
+%	J.~Read. Lecture III - Structured Output Prediction and Search. \textit{INF581 Advanced Topics in Artificial Intelligence}, 2018.
+
+%	\bibitem{Astar}
+%	D.~Mena et al. A family of admissible heuristics for A* to perform inference in probabilistic classifier chains.
+%	{\em Machine Learning}, vol. 106, no. 1, pp 143-169, 2017.
+
+%	\bibitem{DeepMindSC2}
+%	O.~Vinyals et al. StarCraft {II:} {A} New Challenge for Reinforcement Learning.
+%	\url{https://arxiv.org/abs/1708.04782}, 2017. 
 
 \end{thebibliography}
 
