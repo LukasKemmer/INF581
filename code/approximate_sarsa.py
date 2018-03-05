@@ -17,10 +17,10 @@ class approximate_sarsa_agent(object):
         self.env = env
         
         # Initialize theta random
-        self.theta_len = 15*env.n_stores+12
+        self.theta_len = 15*env.n_stores+15
         self.theta = np.zeros(self.theta_len)#np.ones(env.n_stores+2)#
         # Initialize the stepsize alpha
-        self.alpha = 1e-7
+        self.alpha = 1e-10
         # Initialize Epsilon for epsilon greedy
         self.epsilon = 0.1
         # Initialize agent parameters for stepsize rule        
@@ -108,20 +108,19 @@ class approximate_sarsa_agent(object):
         phi[12*n_stores+10:13*n_stores+11,:] = np.power(s_next - 2*cap_store/4, 2)
         phi[14*n_stores+11:15*n_stores+12,:] = np.power(s_next - 3*cap_store/4, 2)
         
+        # Production able to satisfy demand?
+        phi[15*n_stores+12,:] = action[:,0] - np.sum(d_next)
+        phi[15*n_stores+13,:] = action[:,0] - np.sum(d_next + len(d_next))
+        phi[15*n_stores+14,:] = action[:,0] - np.sum(d_next - len(d_next))
+        
+        # Normalize features
+        #phi[:,:] /= np.sum(phi, axis = 0)
+        
         # Format output in case of single action input
         if action_dim ==1:
             return phi.reshape((self.theta_len,))
             
         return phi
-
-    def phi2(self, state, action):
-        phi = np.zeros((81,1))
-        dif = (state[:self.env.n_stores+1]-self.env.cap_store/2)
-        
-        phi[(a*self.dim+1):((a+1)*self.dim)] = np.exp(-.5*(pow(dif / (1.*self.sigmasq), 2.0)).sum(axis=1))
-        phi[a*self.dim] = 1.
-        pass
-        
     
     def get_action(self, state):
         # Find all possible actions
@@ -142,18 +141,14 @@ class approximate_sarsa_agent(object):
         delta = reward + self.env.gamma * np.dot(self.theta, self.phi(state_new, action_new)) - np.dot(self.theta, self.phi(state, action))
         
         # Clip delta in case of extreme values
-        delta = np.clip(delta, -1e50, 1e50)
+        delta = np.clip(delta, -1e100, 1e100)
         
         # Update theta
         self.theta += self.alpha * delta * self.phi(state, action)        
-        
-        # LOG TODO: implement "logger"
-        #self.thetas.append(self.theta.copy())
-        
+                
         # Update alpha, epsilon and n
         self.epsilon = update_epsilon(self.epsilon, self.n)
         self.alpha = update_alpha(self.alpha, self.n)
-        #self.stepsizes.append(self.alpha)
         self.n+=1
         
         # Save information for log
@@ -184,9 +179,9 @@ class approximate_sarsa_agent(object):
         plt.plot(epsilons)
         
         # Plot regression over rewards
-        reg = linregress(np.arange(len(rewards)), rewards)
-        plt.plot(np.arange(len(rewards)), rewards, 'o', label='original data')
-        plt.plot(np.arange(len(rewards)), reg.intercept + reg.slope*np.arange(len(rewards)), 'r', label='fitted line')
+        #reg = linregress(np.arange(len(rewards)), rewards)
+        #plt.plot(np.arange(len(rewards)), rewards, 'o', label='original data')
+        #plt.plot(np.arange(len(rewards)), reg.intercept + reg.slope*np.arange(len(rewards)), 'r', label='fitted line')
         
     def allowed_actions(self, actions):
         result = []
@@ -200,7 +195,7 @@ class approximate_sarsa_agent(object):
     
 @nb.njit(cache=True)
 def update_epsilon(epsilon, n):
-    return stc_stepsize(n)
+    return stc_stepsize(n, alpha_0=0.2, a=175, b=75, beta=0.5)
         
 @nb.njit(cache=True)
 def update_alpha(alpha, n):
