@@ -152,10 +152,12 @@ class REINFORCE_agent(object):
         return actions_ind[action]
               
         
-    def __init__(self, environment, actions_per_store, max_steps, output_freq = 1000, type_of_phi = 1):         
+    def __init__(self, environment, actions_per_store, max_steps, output_freq = 1000, type_of_phi = 2):         
         # The step size for the gradient
         self.alpha = 0.0000001    # very sensitive parameter to choose
-        #self.alpha = 0.001
+        
+        #learning rate for value function approximation
+        self.beta = 0.000000001
 
         self.type_of_phi = type_of_phi
         self.epsilon = 0  # epsilone -greedy (not used at the moment)
@@ -168,11 +170,15 @@ class REINFORCE_agent(object):
         
         # initialize weights (every action with same probability)
         self.Theta = zeros((self.dim_state , self.dim_action ))
+        # store baseline stuff
+        self.w = zeros(self.dim_state+1)# have one more feature:t
+        #self.w = zeros(2)
         
         self.output = 0  # print some output every couple of updates
         self.output_freq = output_freq
         
         # To store an episode
+        
         self.episode_allowed_actions = zeros((self.max_steps+1,self.dim_action)) # for storing the allowed episodes
         self.episode = zeros((self.max_steps+1,1+self.dim_state+1)) # for storing (a,s,r) 
         self.t = 0                                   # for counting time steps
@@ -269,24 +275,41 @@ class REINFORCE_agent(object):
             self.epsilon = self.epsilon * 0.9995
             
             grad = zeros(( self.dim_action, self.dim_state ))  # initialize empty gradient
+            wgradient = zeros(self.w.shape)
             for ts in range(self.t-1):  
-                Dt = sum(self.episode[ts:,-1])  # sum up all rewards
-                action = int(self.episode[ts,0])
                 
                 x= self.episode[ts,1:-1]
                 
+                Dt = sum(self.episode[ts:,-1])  # sum up all rewards
+                # go in the direction of the rewards minus the value function approximation
+                deltat = Dt - dot(self.w,hstack((x,[ts])))
+                #deltat = Dt - dot(self.w,array([1, ts]))
+                
+                
+                action = int(self.episode[ts,0])
+                              
+                # update the w
+                wgradient += self.beta * deltat * hstack((x,[ts]))
+                #wgradient += self.beta * deltat * array([1, ts])
+                               
                 # compute the softmax vector for every time step
                 softmax_vec = softmax_f(self.Theta,x,self.episode_allowed_actions[ts,:])
                 for i in range(self.dim_action): 
                                         
                     if i == action:  # different gradient for the weight of the action that was performed                                                
-                        grad[i,:] = grad[i,:] + (1 - softmax_vec[i]) * x * Dt
+                        grad[i,:] = grad[i,:] + (1 - softmax_vec[i]) * x * deltat
                     else:                        
-                        grad[i,:] = grad[i,:] - softmax_vec[i] * x * Dt
+                        grad[i,:] = grad[i,:] - softmax_vec[i] * x * deltat
             
             # print all desired output here
             if self.output % self.output_freq == 0:
                 print("================Episode: ",self.output," ================")
+                #print("first Vt = ", dot(self.w , array([1, 0]) ) )
+                for ts in range(self.max_steps):
+                    print("Vt of time: ",ts," is ", dot(self.w , hstack((self.episode[ts,1:-1],[ts])) ) )
+                    print("Dt of time: ",ts," is ", sum(self.episode[ts:,-1]))
+                print("first Vt = ", dot(self.w , hstack((self.episode[0,1:-1],[0])) ) )
+                print("first Dt = ", sum(self.episode[:,-1]))
                 print("log :",self.episode )
                 print("The sum of all gradient entries is: ", sum(sum(absolute(grad))))
                 #print("Theta 2 after is : ", self.Theta[:,2])
@@ -294,7 +317,10 @@ class REINFORCE_agent(object):
                 print("Algorithm time per episode: ", (time.time()- self.t0)/ self.output, " seconds!")
                 print("=========================================================")
             for i in range(self.dim_action):
-                self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad[i,:]             
+                self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad[i,:] 
+               
+            # update w:
+            self.w += wgradient
             
             # after episode, set everything to zero!
             self.t = 0
