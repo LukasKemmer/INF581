@@ -13,6 +13,16 @@ from reinforce3 import REINFORCE_agent
 from evaluate_agent import evaluate_agent
 from evaluate_agent import print_step
 
+###
+# Testing file.
+# To run a test, append the environment to the "environments" list and append the test name to env_names list
+# Then append a boolean variable to test_to_run. True to run the test, False if not.
+# There are already 10 environment. Look at them to understand how to add them a which parameters to use
+# To choose an agents, set the agent boolean variables of the agents to run to true
+# The results will be added in the folder at the path "results_folder_path"
+# This results will be loaded from the graph_creation.py file
+###
+
 # results path name
 results_folder_path = "../results/"
 
@@ -29,16 +39,17 @@ log_freq = int(n_episodes / 10) # Helper variable for when
 environments = []
 env_names = []
 
-add_q_s = False
-add_sarsa = False
+# Agent Variables
+add_q_s = True
+add_sarsa = True
 add_sarsa_V3 = False
-add_reinforce_1 = True
-add_reinforce_2 = False
+add_reinforce_1 = False
+add_reinforce_2 = True
 add_reinforce_3 = False
 add_reinforce_4 = False
 
 # Simple2,3,4, Medium,2,3,4, weird,2, Difficult
-test_to_run = [False, False, False, True, False, False, False, False, True, False]
+test_to_run = [False, False, False, False, False, False, False, False, False, False]
 
 # Instantiate environment
 environments.append(SupplyDistribution(n_stores=1,
@@ -219,7 +230,6 @@ for test_num in range(len(test_to_run)):
         if add_reinforce_4:
             result_file_names.append(test_name + "_reinforce3_phi4")
             agents.append(REINFORCE_agent(env, actions_per_store=3, max_steps=max_steps, type_of_phi=0))
-
 
         for i in range(len(agents)):
             evaluate_agent(agents[i], env, n_episodes, max_steps, output, status_freq, print_freq, log_freq,

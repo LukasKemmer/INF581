@@ -6,20 +6,27 @@ def add_graph_to_show(agent_code_name, agent_label_name):
     agents.append(agent_code_name)
     agent_labels.append(agent_label_name)
 
+###
+# Graph creation file
+# To create a graph for an agent, set the agent boolean variable to true.
+# To select the environment, put the correct boolean variable to true in "tests_to_graph"
+# If you want to run your own environment, append the name to "tests" and a boolean to "test to graph"
+
+
 # Variables
 add_q_s = True
-add_sarsa = False
+add_sarsa = True
 add_sarsa_V3 = False
 add_reinforce_1 = False
 add_reinforce_2 = True
 add_reinforce_3 = False
 add_reinforce_4 = False
 tests = ["simple_environment_2", "simple_environment_3", "simple_environment_4", "medium_environment", "medium_environment_3stores", "medium_environment_3stores2", "medium_hard_environment_2", "weird_environment", "weird_environment_2", "difficult_environment"]
-# test_name_to_show = ["simple_environment_2", "simple_environment_3", "simple_environment_4", "medium_environment", "medium_environment_3stores", "medium_environment_3stores2", "medium_hard_environment_2", "weird_environment", "weird_environment_2", "difficult_environment"]
-tests_to_graph = [False, False, False, True, False, False, False, False, True, False]
+tests_to_graph = [False, False, False, False, False, False, False, False, False, False]
 results_folder_path = "../results/"
 reward_plot_step = 10
 colors = ['g', 'c', 'm', 'y', 'r', 'b']
+
 
 # Create auxiliary lists
 agents = []
@@ -31,7 +38,6 @@ add_reinforce_1 and add_graph_to_show("reinforce3", "REINFORCE")
 add_reinforce_2 and add_graph_to_show("reinforce3_phi2", "REINFORCE_phi2")
 add_reinforce_3 and add_graph_to_show("reinforce3_phi3", "REINFORCE_phi3")
 add_reinforce_4 and add_graph_to_show("reinforce3_phi4", "REINFORCE_phi4")
-#add_reinforce_2_V2 and  add_graph_to_show("reinforce3_phi2_V2", "REINFORCE_phi3")
 
 for test_num in range(len(tests)):
     test = tests[test_num]
