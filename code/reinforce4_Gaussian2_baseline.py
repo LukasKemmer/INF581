@@ -180,7 +180,7 @@ class REINFORCE_agent_Gauss(object):
         self.beta = 0.000000001
 
         self.type_of_phi = type_of_phi
-        self.epsilon = 1  # epsilone -greedy 
+        self.epsilon = 0  # epsilone -greedy 
         self.t0 = time.time()  # time the algorithm!
         self.max_steps = max_steps  # steps when update is made
         self.env = environment
@@ -189,7 +189,8 @@ class REINFORCE_agent_Gauss(object):
         self.dim_action =  actions_per_store**(self.env.n_stores+1)  # number of actions to choose from
         
         # initialize weights (every action with same probability)
-        self.Theta = zeros((self.dim_state , self.env.n_stores+1 ))  # dim: [size_state +] x [dim in action space]
+        #self.Theta = zeros((self.dim_state , self.env.n_stores+1 ))  # dim: [size_state +] x [dim in action space]
+        self.Theta = random.randn(self.dim_state , self.env.n_stores+1 ) * 0.1
         self.sigma = 5
         
         # for baseline: initialization
@@ -336,14 +337,15 @@ class REINFORCE_agent_Gauss(object):
             # print all desired output here
             if self.output % self.output_freq == 0:
                 print("================Episode: ",self.output," ================")
-                print("log :",self.episode )
+                #print("log :",self.episode )
+                print("log :",self.episode[:,[1,2,3,4,-1]] )
                 print("The sum of all gradient entries is: ", sum(sum(absolute(grad))))
                 print("The final Theta is:", self.Theta)
                 print("Sigma = ", self.sigma)          
-                print("epsilon is ", self.epsilon)
-                for ts in range(self.max_steps):
-                    print("Vt of time: ",ts," is ", dot(self.w , hstack((self.episode[ts,1:-1],[ts])) ) )
-                    print("Dt of time: ",ts," is ", sum(self.episode[ts:,-1]))
+                #print("epsilon is ", self.epsilon)
+                #for ts in range(self.max_steps):
+                    #print("Vt of time: ",ts," is ", dot(self.w , hstack((self.episode[ts,1:-1],[ts])) ) )
+                    #print("Dt of time: ",ts," is ", sum(self.episode[ts:,-1]))
                 #print("Theta 2 after is : ", self.Theta[:,2])
                 print("Algorithm time: ", time.time()- self.t0, " seconds!")
                 print("Algorithm time per episode: ", (time.time()- self.t0)/ self.output, " seconds!")

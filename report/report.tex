@@ -192,6 +192,56 @@ When testing the approximate SARSA algorihm we found that for some environments 
 	\delta_n = r(\tilde{s_n}, d_n, a_n) + \gamma \theta_n^T \phi(\tilde{s}_{n+1}, a_{n+1}) - \theta_n^T\phi(\tilde{s}_n, a_n)
 \end{equation}
 that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{100}, +1\mathrm{e}{100}]$. Furthermore we initialize the agent with a very small stepsize $\alpha$. 
+
+
+
+
+
+
+\textbf{REINFORCE} is based on a parametrized policy for which the expected reward has to be maximized. We assume our policy to be parametrized as a softmax function for multiple actions. The softmax function assigns a probability for each action and thus behaves as a stochastic policy which can, however, converge to a deterministic one. 
+We discretize the action space such that we only have three available actions per entity (for each warehouse and the factory). For a warehouse, for example, these possible actions are an order of  0,1 or 2 full trucks from the factory. For a given state, some actions might not be available. Since a projection of an unfeasible action to the closest feasible action is not possible in our environment, we used an alternative approach which only updates parameters for available actions. 
+This leads to the following policy parametrization:
+\begin{align}
+    \label{simple_equation}
+    p( a = a^{(k)}| s) = \pi_\Theta(a = a^{(k)},s) =
+    \notag
+    \\
+     =\frac{e^{\Phi(s)^T w_{a^{(k)}}}\cdot f(a^{(k)}|s)}{\sum_{j=1}^{n_a} e^{\Phi(s)^T w_{a^{(j)}}}\cdot f(a^{(j)}|s)} 
+     :=
+     \sigma_k(s)
+\end{align}
+where 
+\begin{equation}
+   f(a^{(j)}|s) =
+   \begin{cases}
+     1 & \text{if $a^{(j)}$ is allowed in state s} \\
+     0 & \text{otherwise} \\ 
+   \end{cases}
+\end{equation}
+As we allow 3 different actions per entity, the number of possible actions is $n_a = 3^{(n_{stores}+1)}$. 
+The feature map $\Phi(s): \mathbb{Z}^{n_{stores}+1} \rightarrow \mathbb{R}^{d}$ maps the state into a space of dimension d in which an optimal action is easily seperable from the other ones. We tried several different options for $\Phi(s)$ including first and second order terms and radial basis functions. 
+The parameter matrix $\Theta$ is assembled in the following way:
+\begin{equation}
+	\Theta = \big(w_1|w_2|...|w_{n_a}\big) \in \mathbb{R}^{d \times n_a }
+\end{equation}
+where $w_i \in \mathbb{R}^{d}$ (including a bias). We initialized $\Theta$ to zeros in order to start with equal probabilities for each action.
+\newline
+\newline
+A gradient ascent method is used to find the parameters that maximize the expected reward following this policy. The gradient for our parametrization evaluates to:
+%	\nabla_{w_i}J(\Theta) = 
+\begin{equation}
+\notag
+\nabla_{w_i} ln(\pi_\Theta(a^{(k)},s))D_t=
+	\begin{cases}
+     (1-\sigma_i(s)) \Phi(s)D_t  & \text{if $i = k$} \\
+     -\sigma_i(s)\Phi(s)  D_t & \text{if $i \neq  k$} \\ 
+    \end{cases}
+\end{equation}
+The full derivation for this gradient is shown in the Appendix.\newline
+A key parameter for this algorithm is the learning rate which we left constant, but close to zero since a small learning rate allows a lot of exploration which is needed for all parameters to adapt. 
+
+
+
 \section{Results and Discussion}
 
 
@@ -215,15 +265,21 @@ that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{100}, +1\m
 %\end{table}
 
 
-To test the algorithms implemented, two main test were done. All of the tests were computed using 10000 episodes of 24 steps each in which our demand distributions make a whole cycle, allowing it to have the full seasonal demand.\newline
-The first test is a simple test, having only the factory and one warehouse,  with no storage cost in the factory and small cost of production, transportation and storage in the warehouse. The objective of this test was to see if the agents can learn that even if producing, sending and storing is a bad decision in short term, because there is a penalty cost that accumulates for not sending the goods to the warehouse, the overall strategy should be to do it anyway. But because there is a cost of production, the optimal strategy would be to not build as much as we can but to build enough to be able to satisfy the season of high demand but no more than that.
+To test the algorithms, two main test were done. All of the tests were computed using 10000 episodes of 24 steps each in which our demand distributions make a whole cycle, allowing it to have the full seasonal demand.\newline
+%%%%%%%%%%%%
+%The first test with only the factory and one warehouse includes %production cost, a storage cost for the warehouse only, a %transportation cost, and a penalty cost for not delivering enough %products. A strategy for the agents to learn is that even though %the costs for production, storing and transportation give a %negative short-term reward, they are necessary to avoid huge %penalty costs in the future. Since the demand increases towards %the end of the year, the optimal strategy is to build up stock, %since production alone cannot satisfy this demand.
+%%%%%%%%%%%%%%%
+The first test is a simple test, having only the factory and one warehouse,  with no storage cost in the factory and small cost of production, transportation and storage in the warehouse. The objective of this test was to see if the agents can learn that even if producing, sending and storing is a bad decision in short term, because there is a penalty cost that accumulates for not sending the goods to the warehouse, the overall strategy should be to do it anyway.
+
+%%%%%%%%%%
+ But because there is a cost of production, the optimal strategy would be to not build as much as we can but to build enough to be able to satisfy the season of high demand but no more than that.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\columnwidth]{medium_2_env_rewards.png}
 	\caption{\label{medium_2_env_rewards} Rewards over time for the three agents in the first test.}
 \end{figure}
 \newline
-The graph seen in Figure 3 shows that both the approximate SARSA algorithm and the REINFORCE can learn this task, with the REINFORCE algorithm having slightly better results and with notable better results that the $(\varsigma, Q)$-Policy based agent, who send and produce goods before they are needed and end up getting a higher penalty. This shows that the basis of our environment can be learned by our agents even if they are only getting weak signals.\newline
+The graph seen in Figure 3 shows that both the approximate SARSA algorithm and the REINFORCE can learn this task, with the REINFORCE algorithm having slightly better results and with notable better results that the $(\varsigma, Q)$-Policy based agent, who sends and produces goods before they are needed and ends up getting a higher penalty. This shows that the basis of our environment can be learned by our agents even if they are only getting weak signals.\newline
 The second test is a harder environment. In this environment the number of warehouses went up to 3, each with different properties. The first warehouse has a high storage and transportation cost, the second warehouse has no storage cost but high transportation cost and the third one no transportation nor storage cost. Furthermore, because of how the production and the demand are balanced there are not enough goods to satisfy all the demand, the agent need to learn everything he learned in the simple scenario but also to prioritize some warehouses before others.
 \begin{figure}[h]
 	\centering
@@ -237,7 +293,7 @@ The second test is a harder environment. In this environment the number of wareh
 \end{figure}
 \newline
 This second graphs seen in Figure 4 shows the $(\varsigma, Q)$-Policy based agent who begins with better results thanks to his simple solutions that allows him to produce a lot and send it to fill the stores one by one, but after all the training the REINFORCE algorithm manages to learn a better strategy. As shown in Figure 4, the storage levels in the differents stores for the $(\varsigma, Q)$-Policy strategy are pretty similar while on the REINFORCE we have the warehouse 1 who has at beginning almost zero stock due to its high storage cost, and when the demand is too high both warehouse 1 and 2 are forfeit to the store three, thanks to his zero cost of storage and transportation. \newline
-The SARSA on the other hand don’t manage to learn the right strategy, building less stock during the low demand and not prioritizing early the warehouse three. The main problem from the not learning of the SARSA is the difficulty to choose the right features and to allow the agent to learn what needs to be learn with this features. Here, we can’t just have a feature that is storage level due to the fact that having really high storage is bad but low is also bad. And because of how the value of each action in every state is calculated is a weight times the feature, he can either say “producing is bad” or “producing is good”. So a balance between the features needs to be reached, where the agent can say that producing is good unless there is too much. This balancing of feature is hard to learn and provoques bad results in too complicated scenarios. This might be solved with a different combination of features but for this particulars parameters none was found.\newline
+The SARSA on the other hand does not manage to learn the right strategy, building less stock during the low demand and not prioritizing early the warehouse three. The main problem from the not learning of the SARSA is the difficulty to choose the right features and to allow the agent to learn what needs to be learn with this features. Here, we can’t just have a feature that is storage level due to the fact that having really high storage is bad but low is also bad. And because of how the value of each action in every state is calculated is a weight times the feature, he can either say “producing is bad” or “producing is good”. So a balance between the features needs to be reached, where the agent can say that producing is good unless there is too much. This balancing of feature is hard to learn and provoques bad results in too complicated scenarios. This might be solved with a different combination of features but for this particulars parameters none was found.\newline
 The readers are encouraged to create their own scenarios in testing.py to see the different performances of the agents. To compare their performances or recreate the graphs seen in this paper graph\_creation.py needs to be run.
 
  
@@ -251,9 +307,46 @@ The readers are encouraged to create their own scenarios in testing.py to see th
 %	\caption{\label{a_figure}An example figure}
 %\end{figure}
 Our implementation of the approximate SARSA algorithm uses a very specific value function approximation that depends strongly on assumptions about the underlying environment. Since this environment has no structural similarity with the ALife\footnote{\url{https://github.com/jmread/alife}} environment it can not be used for testing. To adapt the algorithm to the ALife environment it would be necessary to create new features and design a different function $\phi$ to be used within the existing agent.
+\newline
+In general, the REINFORCE approach is very nicely applicable to the Alife environment as was shown in the lab. Allowing multiple possible actions can also be a reasonable extension. Our implementation, however, is not directly transferable, since we use additional information about which actions are possible which is not available in the Alife environment.
 \section{Conclusion and Future Work}
+The REINFORCE approach is certainly a viable option for this environment as it performs well in each scenario. Of course, the algorithm does have some downsides. As a gradient ascend algorithm it can easily get stuck in local optima which can easily arise in this possibly highly non-convex setting. 
+Additional drawbacks come from the softmax parametrization which 
+requires parameters for each action. This requires a lot of training and can lead to difficulties for actions that are rarely feasible. Moreover, the actions to replenish 0, 1 or 2 trucks are treated as completely separate, dropping the possibility to make use of their ordering. Another parametrization that would make use of this order would be e.g. a Gaussian setting. 
+Unfortunately, our implementation of using independent Gaussians to parametrize the actions for each entity individually failed to show reasonable learning and was dropped therefore for this report.
+
+
 	This section summarizes the paper: Your environment and agent, its strength and its weaknesses. Also remark about what would be the next steps you would take if you or someone else were to continue/extend this project. 
 	Note that for the initial submission you are limited strictly to 4 pages (double column), \emph{not including references}. An extra page will be allowed for final submission (after the initial reviews). 
+
+\section{Appendix}
+Derivation of the gradient for REINFORCE:
+\begin{align}
+	\nabla_{w_i}J(\Theta) = 
+\nabla_{w_i} ln(\pi_\Theta(a(t) = a^{(k)},s(t)))D_t
+\notag
+\end{align}
+where 
+\begin{gather}
+\nabla_{w_i} ln(\pi_\Theta(a(t) = a^{(k)},s))= 
+\notag
+\\ 
+=\nabla_{w_i} (\Phi(s)^T w_{a^{(k)}}) + \nabla_{w_i} ln(f(a^{(k)}|s))
++
+\notag
+\\
+ - 
+ln(\sum_{j=1}^{n_a} e^{\Phi(s)^T w_{a^{(j)}}}\cdot f(a^{(j)}|s))=
+\notag
+\\
+=
+\Phi(s) + 0 - \frac{ e^{\Phi(s)^T w_{a^{(i)}}} \cdot f(a^{(i)}|s)}{\sum_{j=1}^{n_a} e^{\Phi(s)^T w_{a^{(j)}}}\cdot f(a^{(j)}|s)} \cdot \Phi(s)
+=
+\notag
+\\
+=(1-\sigma_i(s))\cdot \phi(s)
+\end{gather}
+
 
 % The bibliography:
 \begin{thebibliography}{4}
