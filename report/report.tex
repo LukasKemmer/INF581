@@ -196,25 +196,52 @@ that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{100}, +1\m
 
 
 
-This is one of the most important sections. You put your agent to the test in the environment, you show -- and most importantly -- you interpret the results.
+%This is one of the most important sections. You put your agent to the test in the environment, you show -- and most importantly -- you interpret the results.
 
 \subsection{Performance of your Agent in your Environment}
 
-Show plots, graphs, tables (e.g., Table~\ref{a_table}), etc. You may wish to encourage readers to reproduce results for themselves, e.g., run \texttt{runDemo.py} in our source code. Show how your agent performs well, or, if it doesn't perform well, it is better to explain why (this is a result in itself!). In any case, you \emph{must} highlight the weaknesses of your agent as well as its strengths. \newline
+%Show plots, graphs, tables (e.g., Table~\ref{a_table}), etc. You may wish to encourage readers to reproduce results for themselves, e.g., run \texttt{runDemo.py} in our source code. Show how your agent performs well, or, if it doesn't perform well, it is better to explain why (this is a result in itself!). In any case, you \emph{must} highlight the weaknesses of your agent as well as its strengths. \newline
+%\begin{table}[h]
+%	\caption{\label{a_table}This table is just an example.}
+%	\centering
+%	\begin{tabular}{lll}
+%		\hline
+%		\textbf{Environment config.} & \textbf{Standard SARSA} & \textbf{Our Improved Agent}  \\
+%		\hline
+%		Simulation 1        & 10             & 15 \\
+%		Simulation 2        & 12             & 11 \\
+%		\hline
+%	\end{tabular}
+%\end{table}
 
 
-\begin{table}[h]
-	\caption{\label{a_table}This table is just an example.}
+To test the algorithms implemented, two main test were done. All of the tests were computed using 10000 episodes of 24 steps each in which our demand distributions make a whole cycle, allowing it to have the full seasonal demand.\newline
+The first test is a simple test, having only the factory and one warehouse,  with no storage cost in the factory and small cost of production, transportation and storage in the warehouse. The objective of this test was to see if the agents can learn that even if producing, sending and storing is a bad decision in short term, because there is a penalty cost that accumulates for not sending the goods to the warehouse, the overall strategy should be to do it anyway. But because there is a cost of production, the optimal strategy would be to not build as much as we can but to build enough to be able to satisfy the season of high demand but no more than that.
+\begin{figure}[h]
 	\centering
-	\begin{tabular}{lll}
-		\hline
-		\textbf{Environment config.} & \textbf{Standard SARSA} & \textbf{Our Improved Agent}  \\
-		\hline
-		Simulation 1        & 10             & 15 \\
-		Simulation 2        & 12             & 11 \\
-		\hline
-	\end{tabular}
-\end{table}
+	\includegraphics[width=0.8\columnwidth]{medium_2_env_rewards.png}
+	\caption{\label{medium_2_env_rewards} Rewards over time for the three agents in the first test.}
+\end{figure}
+\newline
+The graph seen in Figure 3 shows that both the approximate SARSA algorithm and the REINFORCE can learn this task, with the REINFORCE algorithm having slightly better results and with notable better results that the $(\varsigma, Q)$-Policy based agent, who send and produce goods before they are needed and end up getting a higher penalty. This shows that the basis of our environment can be learned by our agents even if they are only getting weak signals.\newline
+The second test is a harder environment. In this environment the number of warehouses went up to 3, each with different properties. The first warehouse has a high storage and transportation cost, the second warehouse has no storage cost but high transportation cost and the third one no transportation nor storage cost. Furthermore, because of how the production and the demand are balanced there are not enough goods to satisfy all the demand, the agent need to learn everything he learned in the simple scenario but also to prioritize some warehouses before others.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\columnwidth]{weird_2_env_rewards.png}
+	\caption{\label{weird_2_env_rewards} Rewards over time for the three agents in the second test.}
+\end{figure}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\columnwidth]{stocks_weird_2_env.png}
+	\caption{\label{stocks_weird_2_env} Stocks for the $(\varsigma, Q)$-Policy based agent and the REINFORCE agent in the second test.}
+\end{figure}
+\newline
+This second graphs seen in Figure 4 shows the $(\varsigma, Q)$-Policy based agent who begins with better results thanks to his simple solutions that allows him to produce a lot and send it to fill the stores one by one, but after all the training the REINFORCE algorithm manages to learn a better strategy. As shown in Figure 4, the storage levels in the differents stores for the $(\varsigma, Q)$-Policy strategy are pretty similar while on the REINFORCE we have the warehouse 1 who has at beginning almost zero stock due to its high storage cost, and when the demand is too high both warehouse 1 and 2 are forfeit to the store three, thanks to his zero cost of storage and transportation. \newline
+The SARSA on the other hand don’t manage to learn the right strategy, building less stock during the low demand and not prioritizing early the warehouse three. The main problem from the not learning of the SARSA is the difficulty to choose the right features and to allow the agent to learn what needs to be learn with this features. Here, we can’t just have a feature that is storage level due to the fact that having really high storage is bad but low is also bad. And because of how the value of each action in every state is calculated is a weight times the feature, he can either say “producing is bad” or “producing is good”. So a balance between the features needs to be reached, where the agent can say that producing is good unless there is too much. This balancing of feature is hard to learn and provoques bad results in too complicated scenarios. This might be solved with a different combination of features but for this particulars parameters none was found.\newline
+The readers are encouraged to create their own scenarios in testing.py to see the different performances of the agents. To compare their performances or recreate the graphs seen in this paper graph\_creation.py needs to be run.
+
+ 
+
 
 \subsection{Performance of your Agent in the ALife Environment}
 %You deploy your agent in the ALife\footnote{\url{https://github.com/jmread/alife}} environment (a random screenshot shown in Figure~\ref{a_figure}). Does it work well? Why? Why not? Justify the adaptation you think is best.
