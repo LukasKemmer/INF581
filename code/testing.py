@@ -3,7 +3,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from q_s_agent import q_s_agent
+from s_q_agent import s_q_agent
 from approximate_sarsa import approximate_sarsa_agent
 #from approximate_sarsa_V2 import approximate_sarsa_agent_V2
 from approximate_sarsa_V3 import approximate_sarsa_agent_V3
