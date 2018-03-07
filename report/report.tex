@@ -1,6 +1,7 @@
 \documentclass[journal, a4paper]{IEEEtran}
 
 \usepackage{graphicx}   
+\usepackage{subcaption}
 %\usepackage{subfigure}
 \usepackage{url}        
 \usepackage{amsmath}    
@@ -274,7 +275,7 @@ The first test is a simple test, having only the factory and one warehouse,  wit
  But because there is a cost of production, the optimal strategy would be to not build as much as we can but to build enough to be able to satisfy the season of high demand but no more than that.
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.8\columnwidth]{medium_2_env_rewards.png}
+	\includegraphics[width=\columnwidth]{medium_2_env_rewards.png}
 	\caption{\label{medium_2_env_rewards} Rewards over time for the three agents in the first test.}
 \end{figure}
 \newline
@@ -282,18 +283,29 @@ The graph seen in Figure 3 shows that both the approximate SARSA algorithm and t
 The second test is a harder environment. In this environment the number of warehouses went up to 3, each with different properties. The first warehouse has a high storage and transportation cost, the second warehouse has no storage cost but high transportation cost and the third one no transportation nor storage cost. Furthermore, because of how the production and the demand are balanced there are not enough goods to satisfy all the demand, the agent need to learn everything he learned in the simple scenario but also to prioritize some warehouses before others.
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.8\columnwidth]{weird_2_env_rewards.png}
+	\includegraphics[width=\columnwidth]{weird_2_env_rewards.png}
 	\caption{\label{weird_2_env_rewards} Rewards over time for the three agents in the second test.}
 \end{figure}
-\begin{figure}[h]
+\begin{figure}
 	\centering
-	\includegraphics[width=0.8\columnwidth]{stocks_weird_2_env.png}
-	\caption{\label{stocks_weird_2_env} Stocks for the $(\varsigma, Q)$-Policy based agent and the REINFORCE agent in the second test.}
+	\begin{subfigure}[b]{0.5\textwidth}
+		\includegraphics[width=\columnwidth]{reinforce_stocks.png}
+		\caption{Stocks for the $(\varsigma, Q)$-Policy based agent.}
+		\label{reinforce_stocks}
+	\end{subfigure}
+	\newline
+	\begin{subfigure}[b]{0.5\textwidth}
+		\includegraphics[width=\columnwidth]{s_q_stocks.png}
+		\caption{ Stocks for the REINFORCE agent.}
+		\label{s_q_stocks}
+	\end{subfigure}
+	\caption{Stocks in the second test}\label{fig:animals}
+	 \vspace{-20pt}
 \end{figure}
-\newline
-This second graphs seen in Figure 4 shows the $(\varsigma, Q)$-Policy based agent who begins with better results thanks to his simple solutions that allows him to produce a lot and send it to fill the stores one by one, but after all the training the REINFORCE algorithm manages to learn a better strategy. As shown in Figure 4, the storage levels in the differents stores for the $(\varsigma, Q)$-Policy strategy are pretty similar while on the REINFORCE we have the warehouse 1 who has at beginning almost zero stock due to its high storage cost, and when the demand is too high both warehouse 1 and 2 are forfeit to the store three, thanks to his zero cost of storage and transportation. \newline
-The SARSA on the other hand does not manage to learn the right strategy, building less stock during the low demand and not prioritizing early the warehouse three. The main problem from the not learning of the SARSA is the difficulty to choose the right features and to allow the agent to learn what needs to be learn with this features. Here, we can’t just have a feature that is storage level due to the fact that having really high storage is bad but low is also bad. And because of how the value of each action in every state is calculated is a weight times the feature, he can either say “producing is bad” or “producing is good”. So a balance between the features needs to be reached, where the agent can say that producing is good unless there is too much. This balancing of feature is hard to learn and provoques bad results in too complicated scenarios. This might be solved with a different combination of features but for this particulars parameters none was found.\newline
-The readers are encouraged to create their own scenarios in testing.py to see the different performances of the agents. To compare their performances or recreate the graphs seen in this paper graph\_creation.py needs to be run.
+This second graphs seen in Figure 4 shows the $(\varsigma, Q)$-Policy based agent who begins with better results thanks to his simple yet good solution, but after all the training the REINFORCE algorithm manages to learn a better strategy. As shown in Figure 5, the storage levels in the differents stores for the $(\varsigma, Q)$-Policy strategy are pretty similar while on the REINFORCE we have the warehouse 1 who has at beginning almost zero stock due to its high storage cost, and when the demand is too high the first two warehouses are forfeit to the third one, because of its zero cost of storage and transportation. \newline
+The SARSA on the other hand does not manage to learn the right strategy, building less stock during the low demand and not prioritizing early warehouse n°3. This comes from the fact that the SARSA algorithm is really dependant on his set of features and can only learn strategies that could be obtained with a right combination of weights for this features. And because this weight can't be positive and negative at the same time, a simple feature like "storage level" can't tell the algorithm how much to store but only that storing is good or bad. So a balance between the features needs to be reached, where the agent can say that producing is good unless there is too much. This balancing of feature is hard to learn and provoques bad results in too complicated scenarios. This might be solved with a different combination of features but for this particulars parameters none was found.\newline
+Other test also showed a small issue for the REINFORCE learning. Because the actions provided are limited to sending 0, 1 or 2 full trucks, there is a problem in some scenarios if the maximum posible production is notably lower than the truck capacity. This issue could be solved by chanching the posible actions of the REINFORCE algorithm but require some understanding of scenario and is not ideal. 
+The readers are encouraged to create their own scenarios in \textit{testing.py} to see the different performances of the agents. To compare their performances or recreate the graphs seen in this paper \textit{graph\_creation.py} needs to be run.
 
  
 
