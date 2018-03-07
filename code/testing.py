@@ -3,7 +3,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from q_s_agent import q_s_agent
+from s_q_agent import s_q_agent
 from approximate_sarsa import approximate_sarsa_agent
 #from approximate_sarsa_V2 import approximate_sarsa_agent_V2
 from approximate_sarsa_V3 import approximate_sarsa_agent_V3
@@ -40,7 +40,7 @@ environments = []
 env_names = []
 
 # Agent Variables
-add_q_s = True
+add_s_q = True
 add_sarsa = True
 add_sarsa_V3 = False
 add_reinforce_1 = False
@@ -203,9 +203,9 @@ for test_num in range(len(test_to_run)):
         agents = []
         env = environments[test_num]
         test_name = env_names[test_num]
-        if add_q_s:
-            result_file_names.append(test_name + "_q_s")
-            agents.append(q_s_agent(threshold=np.array(env.cap_store/2), reorder_quantity=np.array([env.max_prod, env.cap_truck, env.cap_truck, env.cap_truck])))
+        if add_s_q:
+            result_file_names.append(test_name + "_s_q")
+            agents.append(s_q_agent(threshold=np.array(env.cap_store/2), reorder_quantity=np.array([env.max_prod, env.cap_truck, env.cap_truck, env.cap_truck])))
 
         if add_reinforce_1:
             result_file_names.append(test_name + "_reinforce3")
