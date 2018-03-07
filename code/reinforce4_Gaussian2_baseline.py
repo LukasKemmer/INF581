@@ -162,6 +162,11 @@ class REINFORCE_agent_Gauss(object):
         nominator = sum(kfactor*prob)  
         
         Gradient = ((a_phi /  (self.sigma**2))  - (nominator/denominator) )* phi
+        print("Gradient p1 = ", (a_phi /  (self.sigma**2)), " , (nominator/denominator) = ", -(nominator/denominator))
+        print("action taken: ",action_vec[index])
+        print("actions = ", self.discrete2continuous[actions_ind,j])
+        print("dotproducts = ", dotproduct[index])
+        print("probabilities = ", prob)
         return Gradient
         
 
@@ -189,9 +194,9 @@ class REINFORCE_agent_Gauss(object):
         self.dim_action =  actions_per_store**(self.env.n_stores+1)  # number of actions to choose from
         
         # initialize weights (every action with same probability)
-        #self.Theta = zeros((self.dim_state , self.env.n_stores+1 ))  # dim: [size_state +] x [dim in action space]
-        self.Theta = random.randn(self.dim_state , self.env.n_stores+1 ) * 0.1
-        self.sigma = 5
+        self.Theta = zeros((self.dim_state , self.env.n_stores+1 ))  # dim: [size_state +] x [dim in action space]
+        #self.Theta = random.randn(self.dim_state , self.env.n_stores+1 ) * 0.5
+        self.sigma = 15
         
         # for baseline: initialization
         self.w = zeros(self.dim_state+1)# have one more feature:t
@@ -301,7 +306,7 @@ class REINFORCE_agent_Gauss(object):
             
             self.epsilon = self.epsilon * 0.99999
             
-            self.sigma = max(self.sigma * 0.99999,0.1)
+            self.sigma = max(self.sigma * 0.999,0.1)
             
             # baseline gradient
             wgradient = zeros(self.w.shape)
@@ -324,13 +329,16 @@ class REINFORCE_agent_Gauss(object):
                 wgradient += self.beta * deltat * hstack((phi,[ts])) 
                 
                 # compute the gradient for every time step
-                gradient = self.compute_gradient(phi,self.episode_allowed_actions[ts,:], action_vec)                   
+                gradient = self.compute_gradient(phi,self.episode_allowed_actions[ts,:], action_vec)  
+                print("The gradient is : ", gradient)
                 for i in range(self.env.n_stores+1):   # for factory, wh1, wh2...
                     grad[:,i] = grad[:,i] + gradient[:,i] * deltat
+                
                     
             for i in range(self.env.n_stores+1):
-                self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad[:,i]       
-            
+                self.Theta[:,i] = self.Theta[:,i] + self.alpha *  grad[:,i]    
+                #self.Theta[:,i] = self.Theta[:,i] - self.alpha *  grad[:,i]
+            print("FULL GRADIENT = ",grad )
             # update w:
             self.w += wgradient
             
@@ -338,7 +346,7 @@ class REINFORCE_agent_Gauss(object):
             if self.output % self.output_freq == 0:
                 print("================Episode: ",self.output," ================")
                 #print("log :",self.episode )
-                print("log :",self.episode[:,[1,2,3,4,-1]] )
+                print("log :",self.episode[:,[0,2,3,4,-1]] )
                 print("The sum of all gradient entries is: ", sum(sum(absolute(grad))))
                 print("The final Theta is:", self.Theta)
                 print("Sigma = ", self.sigma)          
@@ -363,10 +371,10 @@ class REINFORCE_agent_Gauss(object):
         #print("log :", self.episode)
         #print("The sum of all gradient entries is: ", sum(sum(absolute(grad))))
         #print("Theta 2 after is : ", self.Theta[:,2]) 
-        s=array([1 ,20, -8, 3 , 0])
+        s=array([1 ,20, -8, 3 , 0, 0, 1 ,2 , 0, 1,2 ])
         awarehouse = zeros(20)
         for i in range(len(awarehouse)):
-            addvec = array([0,0,1,0,0])
+            addvec = array([0,0,1,0,0,0,0,0,0,0,0])
             s = s + i * addvec
             awarehouse[i] = dot(s,self.Theta[:,1])  
         fig10 = plt.figure(figsize=(10, 4), dpi=120)
