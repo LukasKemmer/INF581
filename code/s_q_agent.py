@@ -8,7 +8,7 @@ Created on Thu Feb 22 21:16:21 2018
 
 import numpy as np
 
-class q_s_agent(object):
+class s_q_agent(object):
     
     def __init__(self, threshold, reorder_quantity):
         # Initialize parameters
