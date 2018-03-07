@@ -199,16 +199,16 @@ that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{100}, +1\m
 
 
 \textbf{REINFORCE} is based on a parametrized policy for which the expected reward has to be maximized. We assume our policy to be parametrized as a softmax function for multiple actions. The softmax function assigns a probability for each action and thus behaves as a stochastic policy which can, however, converge to a deterministic one. 
-We discretize the action space such that we only have three available actions per entity (for each warehouse and the factory). For a warehouse, for example, these possible actions are an order of  0,1 or 2 full trucks from the factory. For a given state, some actions might not be available. Since a projection of an unfeasible action to the closest feasible action is not possible in our environment, we used an alternative approach which only updates parameters for available actions. 
+We discretize the action space such that we only have three available actions per location (for each warehouse and the factory). For a warehouse, for example, these possible actions are an order of  0,1 or 2 full trucks from the factory. For a given state, some actions might not be available. Since a projection of an unfeasible action to the closest feasible action is not possible in our environment, we used an alternative approach which only updates parameters for available actions. 
 This leads to the following policy parametrization:
 \begin{align}
     \label{simple_equation}
-    p( a = a^{(k)}| s) = \pi_\Theta(a = a^{(k)},s) =
+    p( a = a^{(i)}| s) = \pi_\Theta(a = a^{(i)}|s) =
     \notag
     \\
-     =\frac{e^{\Phi(s)^T w_{a^{(k)}}}\cdot f(a^{(k)}|s)}{\sum_{j=1}^{n_a} e^{\Phi(s)^T w_{a^{(j)}}}\cdot f(a^{(j)}|s)} 
+     =\frac{e^{\phi(s)^T w_{a^{(i)}}}\cdot f(a^{(i)}|s)}{\sum_{j=1}^{n_a} e^{\phi(s)^T w_{a^{(j)}}}\cdot f(a^{(j)}|s)} 
      :=
-     \sigma_k(s)
+     \sigma_i(s)
 \end{align}
 where 
 \begin{equation}
@@ -218,23 +218,22 @@ where
      0 & \text{otherwise} \\ 
    \end{cases}
 \end{equation}
-As we allow 3 different actions per entity, the number of possible actions is $n_a = 3^{(n_{stores}+1)}$. 
-The feature map $\Phi(s): \mathbb{Z}^{n_{stores}+1} \rightarrow \mathbb{R}^{d}$ maps the state into a space of dimension d in which an optimal action is easily seperable from the other ones. We tried several different options for $\Phi(s)$ including first and second order terms and radial basis functions. 
+As we allow 3 different actions per entity, the number of possible actions is $n_a = 3^{(k+1)}$. 
+The feature map $\phi(s): \mathbb{Z}^{k+1} \rightarrow \mathbb{R}^{d}$ maps the state into a space of dimension d in which an optimal action is easily seperable from the other ones. We tried several different options for $\phi(s)$ including first and second order terms and radial basis functions. We always include a bias term as well.
 The parameter matrix $\Theta$ is assembled in the following way:
 \begin{equation}
 	\Theta = \big(w_1|w_2|...|w_{n_a}\big) \in \mathbb{R}^{d \times n_a }
 \end{equation}
 where $w_i \in \mathbb{R}^{d}$ (including a bias). We initialized $\Theta$ to zeros in order to start with equal probabilities for each action.
 \newline
-\newline
 A gradient ascent method is used to find the parameters that maximize the expected reward following this policy. The gradient for our parametrization evaluates to:
 %	\nabla_{w_i}J(\Theta) = 
 \begin{equation}
 \notag
-\nabla_{w_i} ln(\pi_\Theta(a^{(k)},s))D_t=
+\nabla_{w_j} ln(\pi_\Theta(a^{(i)},s))D_t=
 	\begin{cases}
-     (1-\sigma_i(s)) \Phi(s)D_t  & \text{if $i = k$} \\
-     -\sigma_i(s)\Phi(s)  D_t & \text{if $i \neq  k$} \\ 
+     (1-\sigma_j(s)) \phi(s)D_t  & \text{if $i = j$} \\
+     -\sigma_j(s)\phi(s)  D_t & \text{if $i \neq  j$} \\ 
     \end{cases}
 \end{equation}
 The full derivation for this gradient is shown in the Appendix.\newline
@@ -321,10 +320,10 @@ Our implementation of the approximate SARSA algorithm uses a very specific value
 \newline
 In general, the REINFORCE approach is very nicely applicable to the Alife environment as was shown in the lab. Allowing multiple possible actions can also be a reasonable extension. Our implementation, however, is not directly transferable, since we use additional information about which actions are possible which is not available in the Alife environment.
 \section{Conclusion and Future Work}
-The REINFORCE approach is certainly a viable option for this environment as it performs well in each scenario. Of course, the algorithm does have some downsides. As a gradient ascend algorithm it can easily get stuck in local optima which can easily arise in this possibly highly non-convex setting. 
+The REINFORCE approach is certainly a viable option for this environment as it performs well in each scenario. Of course, the algorithm does have some downsides. As a gradient ascend algorithm it can easily get stuck in local optima which can easily arise in this most likely non-convex setting. 
 Additional drawbacks come from the softmax parametrization which 
-requires parameters for each action. This requires a lot of training and can lead to difficulties for actions that are rarely feasible. Moreover, the actions to replenish 0, 1 or 2 trucks are treated as completely separate, dropping the possibility to make use of their ordering. Another parametrization that would make use of this order would be e.g. a Gaussian setting. 
-Unfortunately, our implementation of using independent Gaussians to parametrize the actions for each entity individually failed to show reasonable learning and was dropped therefore for this report.
+requires parameters for each action. This requires a lot of training and can lead to difficulties for actions that are rarely feasible. Moreover, the actions to replenish 0, 1 or 2 trucks are treated as completely separate, dropping the possibility to make use of their natural order. Another parametrization that would make use of this order would be e.g. a Gaussian setting. 
+Unfortunately, our implementation of using independent Gaussians to parametrize the actions for each entity individually failed to show reasonable learning and was therefore dropped from this report.
 
 
 	This section summarizes the paper: Your environment and agent, its strength and its weaknesses. Also remark about what would be the next steps you would take if you or someone else were to continue/extend this project. 
@@ -333,31 +332,51 @@ Unfortunately, our implementation of using independent Gaussians to parametrize 
 \section{Appendix}
 Derivation of the gradient for REINFORCE:
 \begin{align}
-	\nabla_{w_i}J(\Theta) = 
-\nabla_{w_i} ln(\pi_\Theta(a(t) = a^{(k)},s(t)))D_t
+	\nabla_{w_j}J(\Theta) = 
+\nabla_{w_j} ln(\pi_\Theta(a(t) = a^{(i)},s(t)))D_t
 \notag
 \end{align}
-where 
+where for $i = j$ 
 \begin{gather}
-\nabla_{w_i} ln(\pi_\Theta(a(t) = a^{(k)},s))= 
+\nabla_{w_j} ln(\pi_\Theta(a(t) = a^{(i)},s))= 
 \notag
 \\ 
-=\nabla_{w_i} (\Phi(s)^T w_{a^{(k)}}) + \nabla_{w_i} ln(f(a^{(k)}|s))
+=\nabla_{w_j} (\phi(s)^T w_{a^{(i)}}) + \nabla_{w_j} ln(f(a^{(i)}|s))
 +
 \notag
 \\
  - 
-ln(\sum_{j=1}^{n_a} e^{\Phi(s)^T w_{a^{(j)}}}\cdot f(a^{(j)}|s))=
+\nabla_{w_j} ln(\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s))=
 \notag
 \\
 =
-\Phi(s) + 0 - \frac{ e^{\Phi(s)^T w_{a^{(i)}}} \cdot f(a^{(i)}|s)}{\sum_{j=1}^{n_a} e^{\Phi(s)^T w_{a^{(j)}}}\cdot f(a^{(j)}|s)} \cdot \Phi(s)
+\phi(s) + 0 - \frac{ e^{\phi(s)^T w_{a^{(j)}}} \cdot f(a^{(j)}|s)}{\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s)} \cdot \phi(s)
 =
 \notag
 \\
-=(1-\sigma_i(s))\cdot \phi(s)
+=(1-\sigma_j(s))\cdot \phi(s)
 \end{gather}
 
+and for $i \neq j$:
+\begin{gather}
+\nabla_{w_j} ln(\pi_\Theta(a(t) = a^{(i)},s))= 
+\notag
+\\ 
+=\nabla_{w_j} (\phi(s)^T w_{a^{(i)}}) + \nabla_{w_j} ln(f(a^{(i)}|s))
++
+\notag
+\\
+ - 
+\nabla_{w_j} ln(\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s))=
+\notag
+\\
+=
+0 + 0 - \frac{ e^{\phi(s)^T w_{a^{(j)}}} \cdot f(a^{(j)}|s)}{\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s)} \cdot \phi(s)
+=
+\notag
+\\
+=-\sigma_j(s)\cdot \phi(s)
+\end{gather}
 
 % The bibliography:
 \begin{thebibliography}{4}

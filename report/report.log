@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6500 64-bit) (preloaded format=pdflatex 2017.11.13)  7 MAR 2018 00:45
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (MiKTeX 2.9.6500 64-bit) (preloaded format=pdflatex 2017.11.13)  7 MAR 2018 14:11
 entering extended mode
 **./report.tex
 (report.tex
@@ -118,7 +118,47 @@ File: pdftex.def 2017/06/24 v1.0g Graphics/color driver for pdftex
 \Gin@req@height=\dimen117
 \Gin@req@width=\dimen118
 )
-("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\url\url.sty"
+("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\caption\subcaption
+.sty"
+Package: subcaption 2016/05/22 v1.1-161 Sub-captions (AR)
+
+("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\caption\caption.st
+y"
+Package: caption 2016/02/21 v3.3-144 Customizing captions (AR)
+
+("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\caption\caption3.s
+ty"
+Package: caption3 2016/05/22 v1.7-166 caption3 kernel (AR)
+Package caption3 Info: TeX engine: e-TeX on input line 67.
+\captionmargin=\dimen119
+\captionmargin@=\dimen120
+\captionwidth=\dimen121
+\caption@tempdima=\dimen122
+\caption@indent=\dimen123
+\caption@parindent=\dimen124
+\caption@hangindent=\dimen125
+Package caption Info: Unknown document class (or package),
+(caption)             standard defaults will be used.
+)
+
+Package caption Warning: Unsupported document class (or package) detected,
+(caption)                usage of the caption package is not recommended.
+See the caption package documentation for explanation.
+
+Package caption Info: \@makecaption = \long macro:#1#2->\ifx \@captype \@IEEEta
+blestring \footnotesize \begin {center}{\normalfont \footnotesize #1}\\{\normal
+font \footnotesize \scshape #2}\end {center}\@IEEEtablecaptionsepspace \else \@
+IEEEfigurecaptionsepspace \setbox \@tempboxa \hbox {\normalfont \footnotesize {
+#1.}~~ #2}\ifdim \wd \@tempboxa >\hsize \setbox \@tempboxa \hbox {\normalfont \
+footnotesize {#1.}~~ }\parbox [t]{\hsize }{\normalfont \footnotesize \noindent 
+\unhbox \@tempboxa #2}\else \ifCLASSOPTIONconference \hbox to\hsize {\normalfon
+t \footnotesize \hfil \box \@tempboxa \hfil }\else \hbox to\hsize {\normalfont 
+\footnotesize \box \@tempboxa \hfil }\fi \fi \fi .
+\c@ContinuedFloat=\count91
+)
+\c@subfigure=\count92
+\c@subtable=\count93
+) ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\url\url.sty"
 \Urlmuskip=\muskip10
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
 )
@@ -137,48 +177,48 @@ Package: amstext 2000/06/29 v2.01 AMS text
 "
 File: amsgen.sty 1999/11/30 v2.0 generic functions
 \@emptytoks=\toks16
-\ex@=\dimen119
+\ex@=\dimen126
 ))
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsmath\amsbsy.sty
 "
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
-\pmbraise@=\dimen120
+\pmbraise@=\dimen127
 )
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsmath\amsopn.sty
 "
 Package: amsopn 2016/03/08 v2.02 operator names
 )
-\inf@bad=\count91
+\inf@bad=\count94
 LaTeX Info: Redefining \frac on input line 213.
-\uproot@=\count92
-\leftroot@=\count93
+\uproot@=\count95
+\leftroot@=\count96
 LaTeX Info: Redefining \overline on input line 375.
-\classnum@=\count94
-\DOTSCASE@=\count95
+\classnum@=\count97
+\DOTSCASE@=\count98
 LaTeX Info: Redefining \ldots on input line 472.
 LaTeX Info: Redefining \dots on input line 475.
 LaTeX Info: Redefining \cdots on input line 596.
 \Mathstrutbox@=\box27
 \strutbox@=\box28
-\big@size=\dimen121
+\big@size=\dimen128
 LaTeX Font Info:    Redeclaring font encoding OML on input line 712.
 LaTeX Font Info:    Redeclaring font encoding OMS on input line 713.
-\macc@depth=\count96
-\c@MaxMatrixCols=\count97
+\macc@depth=\count99
+\c@MaxMatrixCols=\count100
 \dotsspace@=\muskip11
-\c@parentequation=\count98
-\dspbrk@lvl=\count99
+\c@parentequation=\count101
+\dspbrk@lvl=\count102
 \tag@help=\toks17
-\row@=\count100
-\column@=\count101
-\maxfields@=\count102
+\row@=\count103
+\column@=\count104
+\maxfields@=\count105
 \andhelp@=\toks18
-\eqnshift@=\dimen122
-\alignsep@=\dimen123
-\tagshift@=\dimen124
-\tagwidth@=\dimen125
-\totwidth@=\dimen126
-\lineht@=\dimen127
+\eqnshift@=\dimen129
+\alignsep@=\dimen130
+\tagshift@=\dimen131
+\tagwidth@=\dimen132
+\totwidth@=\dimen133
+\lineht@=\dimen134
 \@envbody=\toks19
 \multlinegap=\skip45
 \multlinetaggap=\skip46
@@ -192,15 +232,15 @@ Package: mathtools 2018/01/08 v1.21 mathematical typesetting tools
 
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\tools\calc.sty"
 Package: calc 2014/10/28 v4.3 Infix arithmetic (KKT,FJ)
-\calc@Acount=\count103
-\calc@Bcount=\count104
-\calc@Adimen=\dimen128
-\calc@Bdimen=\dimen129
+\calc@Acount=\count106
+\calc@Bcount=\count107
+\calc@Adimen=\dimen135
+\calc@Bdimen=\dimen136
 \calc@Askip=\skip47
 \calc@Bskip=\skip48
 LaTeX Info: Redefining \setlength on input line 80.
 LaTeX Info: Redefining \addtolength on input line 81.
-\calc@Ccount=\count105
+\calc@Ccount=\count108
 \calc@Cskip=\skip49
 )
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\mathtools\mhsetup.
@@ -211,15 +251,15 @@ LaTeX Info: Thecontrolsequence`\('isalreadyrobust on input line 129.
 LaTeX Info: Thecontrolsequence`\)'isalreadyrobust on input line 129.
 LaTeX Info: Thecontrolsequence`\['isalreadyrobust on input line 129.
 LaTeX Info: Thecontrolsequence`\]'isalreadyrobust on input line 129.
-\g_MT_multlinerow_int=\count106
-\l_MT_multwidth_dim=\dimen130
+\g_MT_multlinerow_int=\count109
+\l_MT_multwidth_dim=\dimen137
 \origjot=\skip50
-\l_MT_shortvdotswithinadjustabove_dim=\dimen131
-\l_MT_shortvdotswithinadjustbelow_dim=\dimen132
-\l_MT_above_intertext_sep=\dimen133
-\l_MT_below_intertext_sep=\dimen134
-\l_MT_above_shortintertext_sep=\dimen135
-\l_MT_below_shortintertext_sep=\dimen136
+\l_MT_shortvdotswithinadjustabove_dim=\dimen138
+\l_MT_shortvdotswithinadjustbelow_dim=\dimen139
+\l_MT_above_intertext_sep=\dimen140
+\l_MT_below_intertext_sep=\dimen141
+\l_MT_above_shortintertext_sep=\dimen142
+\l_MT_below_shortintertext_sep=\dimen143
 )
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsfonts\amssymb.s
 ty"
@@ -245,7 +285,7 @@ Package: amsthm 2015/03/04 v2.20.2
 \thm@headsep=\skip53
 \dth@everypar=\toks26
 )
-\c@thm=\count107
+\c@thm=\count110
 
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\algorithms\algorit
 hm.sty"
@@ -254,7 +294,7 @@ nment
 
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\float\float.sty"
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
-\c@float@type=\count108
+\c@float@type=\count111
 \float@exts=\toks27
 \float@box=\box29
 \@float@everytoks=\toks28
@@ -264,7 +304,7 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 Package: ifthen 2014/09/29 v1.1c Standard LaTeX ifthen package (DPC)
 )
 \@float@every@algorithm=\toks29
-\c@algorithm=\count109
+\c@algorithm=\count112
 )
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\algorithmicx\algps
 eudocode.sty"
@@ -275,15 +315,15 @@ ithmicx.sty"
 Package: algorithmicx 2005/04/27 v1.2 Algorithmicx
 
 Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
-\c@ALG@line=\count110
-\c@ALG@rem=\count111
-\c@ALG@nested=\count112
+\c@ALG@line=\count113
+\c@ALG@rem=\count114
+\c@ALG@nested=\count115
 \ALG@tlm=\skip54
 \ALG@thistlm=\skip55
-\c@ALG@Lnr=\count113
-\c@ALG@blocknr=\count114
-\c@ALG@storecount=\count115
-\c@ALG@tmpcounter=\count116
+\c@ALG@Lnr=\count116
+\c@ALG@blocknr=\count117
+\c@ALG@storecount=\count118
+\c@ALG@tmpcounter=\count119
 \ALG@tmplength=\skip56
 )
 Document Style - pseudocode environments for use with the `algorithmicx' style
@@ -335,8 +375,8 @@ Package pdftexcmds Info: \pdfdraftmode found.
 Package: shellesc 2016/06/07 v0.02a unified shell escape interface for LaTeX
 Package shellesc Info: Restricted shell escape enabled on input line 69.
 )
-\c@svg@param@lastpage=\count117
-\c@svg@param@currpage=\count118
+\c@svg@param@lastpage=\count120
+\c@svg@param@currpage=\count121
 )
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\xcolor\xcolor.sty"
 Package: xcolor 2016/05/11 v2.12 LaTeX color extensions (UK)
@@ -367,32 +407,32 @@ Package: auxhook 2016/05/16 v1.4 Hooks for auxiliary files (HO)
 )) (report.aux)
 \openout1 = `report.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 37.
+LaTeX Font Info:    ... okay on input line 37.
 
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\context\base\supp-pdf.mk
 ii"
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count119
-\scratchdimen=\dimen137
+\scratchcounter=\count122
+\scratchdimen=\dimen144
 \scratchbox=\box31
-\nofMPsegments=\count120
-\nofMParguments=\count121
+\nofMPsegments=\count123
+\nofMParguments=\count124
 \everyMPshowfont=\toks30
-\MPscratchCnt=\count122
-\MPscratchDim=\dimen138
-\MPnumerator=\count123
-\makeMPintoPDFobject=\count124
+\MPscratchCnt=\count125
+\MPscratchDim=\dimen145
+\MPnumerator=\count126
+\makeMPintoPDFobject=\count127
 \everyMPtoPDFconversion=\toks31
 )
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\oberdiek\epstopdf-
@@ -430,6 +470,9 @@ Package grfext Info: Graphics extension search list:
 G,.JBIG2,.JB2,.eps]
 (grfext)             \AppendGraphicsExtensions on input line 456.
 )
+Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: float package is loaded.
+Package caption Info: End \AtBeginDocument code.
 LaTeX Font Info:    Try loading font information for U+msa on input line 58.
 
 ("C:\Users\henri\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsfonts\umsa.fd"
@@ -451,9 +494,6 @@ File: model.png Graphic file (type png)
 Package pdftex.def Info: model.png  used on input line 94. on input line 94.
 Package pdftex.def Info: Requested size: 100.79846pt x 117.7412pt on input line
  94.
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
 [1{C:/Users/henri/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}
 
 
@@ -485,87 +525,86 @@ Underfull \hbox (badness 4673) in paragraph at lines 193--195
 cmr/m/n/10 +1e[]]$\OT1/ptm/m/n/10 . Fur-ther-more we ini-tial-ize the agent
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 226--232
-
- []
-
-<medium_2_env_rewards.png, id=27, 722.7pt x 286.671pt>
+<medium_2_env_rewards.png, id=26, 722.7pt x 286.671pt>
 File: medium_2_env_rewards.png Graphic file (type png)
 <use medium_2_env_rewards.png>
-Package pdftex.def Info: medium_2_env_rewards.png  used on input line 278. on i
-nput line 278.
-Package pdftex.def Info: Requested size: 201.60077pt x 79.9655pt on input line 
-278.
-<weird_2_env_rewards.png, id=28, 722.7pt x 286.671pt>
+Package pdftex.def Info: medium_2_env_rewards.png  used on input line 277. on i
+nput line 277.
+Package pdftex.def Info: Requested size: 252.0pt x 99.96016pt on input line 277
+.
+<weird_2_env_rewards.png, id=27, 722.7pt x 286.671pt>
 File: weird_2_env_rewards.png Graphic file (type png)
 <use weird_2_env_rewards.png>
-Package pdftex.def Info: weird_2_env_rewards.png  used on input line 286. on in
-put line 286.
-Package pdftex.def Info: Requested size: 201.60077pt x 79.9655pt on input line 
-286.
-<stocks_weird_2_env.png, id=29, 722.7pt x 286.671pt>
-File: stocks_weird_2_env.png Graphic file (type png)
-<use stocks_weird_2_env.png>
-Package pdftex.def Info: stocks_weird_2_env.png  used on input line 291. on inp
-ut line 291.
-Package pdftex.def Info: Requested size: 201.60077pt x 79.9655pt on input line 
-291.
-Missing character: There is no ‚ in font ptmr7t!
-Missing character: There is no Ä in font ptmr7t!
-Missing character: There is no ô in font ptmr7t!
-Missing character: There is no ‚ in font ptmr7t!
-Missing character: There is no Ä in font ptmr7t!
-Missing character: There is no ú in font ptmr7t!
-Missing character: There is no ‚ in font ptmr7t!
-Missing character: There is no Ä in font ptmr7t!
-Missing character: There is no ù in font ptmr7t!
-Missing character: There is no ‚ in font ptmr7t!
-Missing character: There is no Ä in font ptmr7t!
-Missing character: There is no ú in font ptmr7t!
-Missing character: There is no ‚ in font ptmr7t!
-Missing character: There is no Ä in font ptmr7t!
-Missing character: There is no ù in font ptmr7t!
+Package pdftex.def Info: weird_2_env_rewards.png  used on input line 285. on in
+put line 285.
+Package pdftex.def Info: Requested size: 252.0pt x 99.96016pt on input line 285
+.
+<reinforce_stocks.png, id=28, 722.7pt x 286.671pt>
+File: reinforce_stocks.png Graphic file (type png)
+<use reinforce_stocks.png>
+Package pdftex.def Info: reinforce_stocks.png  used on input line 291. on input
+ line 291.
+Package pdftex.def Info: Requested size: 258.0pt x 102.33975pt on input line 29
+1.
+<s_q_stocks.png, id=29, 722.7pt x 286.671pt>
+File: s_q_stocks.png Graphic file (type png)
+<use s_q_stocks.png>
+Package pdftex.def Info: s_q_stocks.png  used on input line 297. on input line 
+297.
+Package pdftex.def Info: Requested size: 258.0pt x 102.33975pt on input line 29
+7.
+
+Overfull \hbox (6.0pt too wide) in paragraph at lines 290--301
+ [][]  
+ []
+
+
+Overfull \hbox (6.0pt too wide) in paragraph at lines 290--301
+ [] 
+ []
+
+Missing character: There is no ¬ in font ptmr7t!
+Missing character: There is no ∞ in font ptmr7t!
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[3] [4 <./medium_2_env_rewards.png> <./weird_2_env_rewards.png> <./stocks_weird
-_2_env.png>] [5
-
-] (report.aux) ) 
+[3] [4 <./medium_2_env_rewards.png> <./weird_2_env_rewards.png> <./reinforce_st
+ocks.png> <./s_q_stocks.png>] [5] (report.aux) ) 
 Here is how much of TeX's memory you used:
- 5543 strings out of 493312
- 87120 string characters out of 3129826
- 187853 words of memory out of 3000000
- 8980 multiletter control sequences out of 15000+200000
- 42712 words of font info for 87 fonts, out of 3000000 for 9000
+ 6673 strings out of 493312
+ 107623 string characters out of 3129826
+ 210023 words of memory out of 3000000
+ 10096 multiletter control sequences out of 15000+200000
+ 45335 words of font info for 94 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 48i,17n,42p,1053b,233s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvi
-ps/base/8r.enc}<C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/pu
-blic/amsfonts/cm/cmex10.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/f
-onts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/henri/AppData/Local/Programs
-/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi5.pfb><C:/Users/henri/AppData/Lo
-cal/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/henr
-i/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C
-:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/
-cmr10.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/
-amsfonts/cm/cmr5.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/ty
-pe1/public/amsfonts/cm/cmr6.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2
-.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/henri/AppData/Local/Progra
-ms/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/henri/AppData/L
-ocal/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/he
-nri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy5.pfb>
-<C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/c
-m/cmsy7.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/publi
-c/amsfonts/symbols/msbm10.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9
-/fonts/type1/urw/times/utmb8a.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX
- 2.9/fonts/type1/urw/times/utmbi8a.pfb><C:/Users/henri/AppData/Local/Programs/M
-iKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><C:/Users/henri/AppData/Local/Progra
-ms/MiKTeX 2.9/fonts/type1/urw/times/utmri8a.pfb>
-Output written on report.pdf (5 pages, 572147 bytes).
+ 48i,17n,42p,1053b,476s stack positions out of 5000i,500n,10000p,200000b,50000s
+{C:/Users/henri/AppData/Local/P
+rograms/MiKTeX 2.9/fonts/enc/dvips/base/8r.enc}<C:/Users/henri/AppData/Local/Pr
+ograms/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/henri/App
+Data/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Us
+ers/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi
+5.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsf
+onts/cm/cmmi7.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1
+/public/amsfonts/cm/cmmi8.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9
+/fonts/type1/public/amsfonts/cm/cmmi9.pfb><C:/Users/henri/AppData/Local/Program
+s/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/henri/AppData/L
+ocal/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/Users/henr
+i/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:
+/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/c
+mr8.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/am
+sfonts/cm/cmr9.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type
+1/public/amsfonts/cm/cmsy10.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2
+.9/fonts/type1/public/amsfonts/cm/cmsy5.pfb><C:/Users/henri/AppData/Local/Progr
+ams/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/henri/AppData
+/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/U
+sers/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb><
+C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/times/utmbi8a.
+pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/times/utm
+r8a.pfb><C:/Users/henri/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/times
+/utmri8a.pfb>
+Output written on report.pdf (5 pages, 596699 bytes).
 PDF statistics:
- 101 PDF objects out of 1000 (max. 8388607)
+ 107 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 26 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 31 words of extra memory for PDF output out of 10000 (max. 10000000)
 
