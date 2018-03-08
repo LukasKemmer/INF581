@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from s_q_agent import s_q_agent
 from approximate_sarsa import approximate_sarsa_agent
 from approximate_sarsa_V3 import approximate_sarsa_agent_V3
+from approximate_sarsa_V4 import approximate_sarsa_agent_V4
 from supply_distribution import SupplyDistribution
 from reinforce3 import REINFORCE_agent
 from evaluate_agent import evaluate_agent
@@ -39,15 +40,16 @@ env_names = []
 
 # Agent Variables
 add_s_q = True
-add_sarsa = True
+add_sarsa = False
 add_sarsa_V3 = False
+add_sarsa_V4 = False
 add_reinforce_1 = False
 add_reinforce_2 = True
 add_reinforce_3 = False
 add_reinforce_4 = False
 
 # Simple2,3,4, Medium,2,3,4, weird,2, Difficult
-test_to_run = [False, False, False, True, False, False, False, False, False, False]
+test_to_run = [False, False, False, True, False, False, False, False, False, False, False]
 
 # Instantiate environment
 environments.append(SupplyDistribution(n_stores=1,
@@ -93,10 +95,24 @@ environments.append(SupplyDistribution(n_stores=1,
 env_names.append("simple_environment_4")
 
 environments.append(SupplyDistribution(n_stores=1,
+                         cap_truck=3,
+                         prod_cost=1,
+                         max_prod=3,
+                         store_cost=np.array([0, 0.1]),
+                         truck_cost=np.array([1]),
+                         cap_store=np.array([50, 30]),
+                         penalty_cost=1,
+                         price=1,
+                         gamma=1,
+                         max_demand = 4,
+                         episode_length = max_steps))
+env_names.append("medium_environment")
+
+environments.append(SupplyDistribution(n_stores=1,
                                        cap_truck=3,
                                        prod_cost=1,
                                        max_prod=2,
-                                       store_cost=np.array([0, 0.5]),
+                                       store_cost=np.array([0, 1]),
                                        truck_cost=np.array([3]),
                                        cap_store=np.array([30, 10]),
                                        penalty_cost=1,
@@ -160,7 +176,7 @@ environments.append(SupplyDistribution(n_stores=3,
                                        gamma=1,
                                        max_demand = 3,
                                        episode_length = max_steps))
-env_names.append("weird_environment")
+env_names.append("special_environment")
 
 
 environments.append(SupplyDistribution(n_stores=3,
@@ -175,7 +191,7 @@ environments.append(SupplyDistribution(n_stores=3,
                                        gamma=1,
                                        max_demand = 4,
                                        episode_length = max_steps))
-env_names.append("weird_environment_2")
+env_names.append("special_environment_2")
 
 environments.append(SupplyDistribution(n_stores=3,
                          cap_truck=2,
@@ -216,6 +232,10 @@ for test_num in range(len(test_to_run)):
         if add_sarsa_V3:
             result_file_names.append(test_name + "_sarsa_V3")
             agents.append(approximate_sarsa_agent_V3(env))
+
+        if add_sarsa_V4:
+                    result_file_names.append(test_name + "_sarsa_V4")
+                    agents.append(approximate_sarsa_agent_V4(env))
 
         if add_reinforce_2:
             result_file_names.append(test_name + "_reinforce3_phi2")
