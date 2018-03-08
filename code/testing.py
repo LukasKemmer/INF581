@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from s_q_agent import s_q_agent
 from approximate_sarsa import approximate_sarsa_agent
 from approximate_sarsa_V3 import approximate_sarsa_agent_V3
-from approximate_sarsa_V4 import approximate_sarsa_agent_V4
 from supply_distribution import SupplyDistribution
 from reinforce3 import REINFORCE_agent
 from evaluate_agent import evaluate_agent
@@ -42,7 +41,6 @@ env_names = []
 add_s_q = True
 add_sarsa = False
 add_sarsa_V3 = False
-add_sarsa_V4 = False
 add_reinforce_1 = False
 add_reinforce_2 = True
 add_reinforce_3 = False
@@ -221,10 +219,6 @@ for test_num in range(len(test_to_run)):
             result_file_names.append(test_name + "_s_q")
             agents.append(s_q_agent(threshold=np.array(env.cap_store/2), reorder_quantity=np.array([env.max_prod, env.cap_truck, env.cap_truck, env.cap_truck])))
 
-        if add_reinforce_1:
-            result_file_names.append(test_name + "_reinforce3")
-            agents.append(REINFORCE_agent(env, actions_per_store=3, max_steps=max_steps))
-
         if add_sarsa:
             result_file_names.append(test_name + "_sarsa_V1")
             agents.append(approximate_sarsa_agent(env))
@@ -233,9 +227,9 @@ for test_num in range(len(test_to_run)):
             result_file_names.append(test_name + "_sarsa_V3")
             agents.append(approximate_sarsa_agent_V3(env))
 
-        if add_sarsa_V4:
-                    result_file_names.append(test_name + "_sarsa_V4")
-                    agents.append(approximate_sarsa_agent_V4(env))
+        if add_reinforce_1:
+            result_file_names.append(test_name + "_reinforce3")
+            agents.append(REINFORCE_agent(env, actions_per_store=3, max_steps=max_steps))
 
         if add_reinforce_2:
             result_file_names.append(test_name + "_reinforce3_phi2")

@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def add_graph_to_show(agent_code_name, agent_label_name):
     agents.append(agent_code_name)
     agent_labels.append(agent_label_name)
@@ -15,14 +16,14 @@ def add_graph_to_show(agent_code_name, agent_label_name):
 
 # Variables
 add_s_q = True
-add_sarsa = False
+add_sarsa = True
 add_sarsa_V3 = False
 add_reinforce_1 = False
 add_reinforce_2 = True
 add_reinforce_3 = False
 add_reinforce_4 = False
-tests = ["simple_environment_2", "simple_environment_3", "simple_environment_4", "medium_environment", "medium_environment_3stores", "medium_environment_3stores2", "medium_hard_environment_2", "weird_environment", "weird_environment_2", "difficult_environment"]
-tests_to_graph = [False, False, False, False, False, False, False, False, True, False]
+tests = ["simple_environment_2", "simple_environment_3", "simple_environment_4", "medium_environment", "medium_environment_3stores", "medium_environment_3stores2", "medium_hard_environment_2", "special_environment", "special_environment_2", "difficult_environment"]
+tests_to_graph = [False, False, False, True, False, False, False, True, False, False]
 results_folder_path = "../results/"
 reward_plot_step = 10
 colors = ['g', 'c', 'm', 'y', 'r', 'b']
@@ -48,7 +49,7 @@ for test_num in range(len(tests)):
             rewards = pd.read_csv(results_folder_path + test + "_" + agent + "_rewards.csv", header=None).values.flatten()
             #plt.title("Rewards for " + test)
             plt.plot(rewards[::reward_plot_step], colors[agent_num], label=agent_labels[agent_num])
-            plt.xlabel('episodes/10')
+            plt.xlabel('episodes')
             plt.ylabel('reward')
             plt.legend()
         plt.show()
