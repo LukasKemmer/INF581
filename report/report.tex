@@ -37,28 +37,28 @@
 \begin{document}
 
 % Define document title, do NOT write author names
-\title{The Title of your Report}
+\title{Reinforcement learning for supply chain optimization}
 \author{Anonymous Authors}
 \maketitle
 
 % Write abstract here
 \begin{abstract}
-	A short summary of your project. You should change also the title, but do \emph{not} enter any author names or anything that unnecessarily identifies any of the authors. It is suggested you use a similar structure (sections, etc.) as demonstrated in this document, but you can make the section headings more descriptive if you wish. Of course \emph{you should delete all the text in this template and write your own}! -- this text simply provides detailed instructions/hints on how to proceed.
-
+	In this paper we investigate the performance of two reinforcement learning (RL) agents within a supply chain optimization environment. In section \ref{sec:env} we model the environment as a markov decision process (MDP) where during each step it needs to be decided how many products should be produced in a factory and how many products should be shipped to different warehouses. We then design three different agents based on a static $(\varsigma, Q)$-policy, the approximate SARSA- and the REINFORCE algorithm which we describe in section \ref{sec:agent}. Here we pay special attention to different feature mapping functions that are used to model the value of state and state-action pairs respectively. We then evaluate the agents performance by exposing them to different scenarios of our environment that we initialize by defining different parameter settings. We find that both the approximate SARSA and the REINFORCE algorithm can outperform the static $(\varsigma, Q)$ agent and that the REINFORCE agent tends to perform best in the long run.
 \end{abstract}
 
 % Each section begins with a \section{title} command
 \section{Introduction}
-
+\label{sec:intro}
 %Describe what you did. Provide access to your anonymized code\footnote{Our code is available here: \url{http://anonymouslinktoyourcode.zip}}.
 
 %Note that results should be reproducible using the technologies from the labs (i.e., Python, and selecting among Scikit-Learn, OpenAI Gym, TensorFlow, PyGame, \ldots).
 
 %Do not change the formatting (columns, margins, etc). Hint: shared tools like \texttt{http://sharelatex.com/} and \texttt{http://overleaf.com/} are great tools for collaborating on a multi-author report in latex. If you wish to use Word, base it on the IEEE template\footnote{\url{https://www.ieee.org/publications_standards/publications/conferences/2014_04_msw_a4_format.doc}} and convert to \texttt{pdf} for submission. 
-In the following paper we implement three different reinforcement learning agents and evaluate their performance within a supply chain environment. All the code used to create the results presented in this paper can be found here \footnote{Our code is available here:\url{https://ufile.io/z58s1}}. \newline
+In the following paper we implement three different reinforcement learning agents and evaluate their performance within a supply chain environment. All the code used to create the results presented in this paper can be found here \footnote{Our code is available here:\url{https://uploadfiles.io/je31f}}. \newline
 The supply chain optimization environment represents a problem faced by companies whose supply chain consists of a factory and multiple warehouses (so called hub-and-spoke networks as described by \cite{MFL}). The main decision that needs to be made in these settings is how many products should be produced in the factory and how much stock should be build up in the warehouses. Seasonal demand can further complicate the decision problem since it might require the companies to start building up stock early so that high demands in the future can be satisfied (e.g. think about christmas where the stock of eggnog needs to be build up during november and december to be able to satisfy the high demand levels during the holidays). This requirement for mid- to long-term planning indicates that the problem can be formulated as a multi-step decision problem and further exhibits a weak signal because the reward for an early build-up of stock will only be realized in the future when the actual demand reaches its maximum. \newline
 Even for small supply chain networks we find that due to the curses of dimensionality, as described by \cite{PowellADP}, the state- and action-spaces of the respective decision problems become unfeasebly large. Therefore we turn to function-approximation and policy-search methods of reinforcement learning that are less affected by these problems. In our case we chose approximate SARSA and the REINFORCE algorithm as a basis for the agents.
 \section{Background and Related Work}
+\label{sec:background}
 %Elaborate (in your own words) the background material required to understand your work. It should cover a subset of the topics touched upon in the course. You are encouraged to cite topics in lectures, e.g., structured output prediction in \cite{LectureSOP}, book chapters, e.g., Chapter 9 from \cite{Barber}, or articles from the literature, e.g., \cite{Astar,DeepMindSC2}. Basically, you should prepare the reader to understand what you are about to present in the following sections. Eq.~\eqref{eq:MAP} shows a random equation.
 %\begin{equation}
 %	\label{eq:MAP}
@@ -88,7 +88,8 @@ with some parameters $\alpha_0, b, a$ and $\beta$ that can be set by the user ba
 %	\caption{\label{stc} Learning rates of the search then converge stepsize for $24.000$ iterations.}
 %\end{figure}
 \section{The Environment}
-We will model the environment as a MDP that we regard over an infinite number of periods $t = 0, 1, ...$ . The environment consists of one factory (indexed by $0$) and up to $k \in \mathbb{N}$ warehouses (indexed by $j=1,...,k$) where in each period it needs to be decided how many units of a product (e.g. butter) should be produced and how many should be shipped to the individual warehouses. A representation of a network with 5 warehouses is depicted in Figure~\ref{model_example}. 
+\label{sec:env}
+We will model the environment as a MDP that we regard over $N \in \mathbb{Z}$ periods $t = 0, 1, ..., N$. The environment consists of one factory (indexed by $0$) and up to $k \in \mathbb{N}$ warehouses (indexed by $j=1,...,k$) where in each period it needs to be decided how many units of a product (e.g. butter) should be produced and how many should be shipped to the individual warehouses. A representation of a network with 5 warehouses is depicted in Figure~\ref{model_example}. 
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=0.4\columnwidth]{model.png}
@@ -128,7 +129,7 @@ The reward within each period consists of the revenue from sold products at a fi
 		&+\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil.
 	\end{split}
 \end{equation}
-Furthermore we chose a discounting factor $\gamma \in (0,1)$ that can be interpreted e.g. as a result of inflation. \newline Based on this model description we can now formulate the task as an infinite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(\tilde{S}, D, A, \mathcal{X}, T, Q, r, \gamma)$ with
+The terminal reward after period $t=N$ is $0$ meaning that we will not account for remaining positive or negative stock. Furthermore we chose a discounting factor $\gamma \in \mathbb{R}_+$ that can be interpreted e.g. as a result of inflation. \newline Based on this model description we can now formulate the task as a finite horizon markov decision process that is subject to a varying environment. Thereby we receive the tuple $(\tilde{S}, D, A, \mathcal{X}, T, Q, r, \gamma)$ with
 \begin{defn} \label{def:modell} \
 	\begin{itemize}
 		\item[1.] $\tilde{S}  \times D \coloneqq \prod\limits_{j=0}^{k} \{s_j \in \mathbb{Z} \ | \ s_j \leq c_j\} \times D^3, c_j \in \mathbb{N}$ the state space consisting of elements $(\tilde{s}, d) = ((s, d_{last}, d_{hist}), d)$;
@@ -151,19 +152,20 @@ Furthermore we chose a discounting factor $\gamma \in (0,1)$ that can be interpr
 %					&-\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil;
 %				\end{split}
 %			\end{equation*}
-		\item[7.] $\gamma \in (0, 1) $ the discounting factor.
+		\item[7.] $\gamma \in \mathbb{R}_+$ the discounting factor.
 	\end{itemize}
 \end{defn}
-For the calculation of the expected discounted revenue for each tuple $(\tilde{s}, d)$ we obtain the value function $V$ with\\
+For the calculation of the expected discounted revenue for each tuple $(\tilde{s}, d)$ we obtain the value function $V_n$ with\\
 \begin{equation}
 	\label{eq:ValueFunction}
 	\begin{split}
-		V(\tilde{s},d) = &\max_{a \in \mathcal{X} (\tilde{s})} \{ r(\tilde{s}, d, a)  \\
-		&+ \gamma \sum_{d' \in D} q_d(d') V(T(\tilde{s}, d, a), d') \}, \\ 
-		&\tilde{s} \in \tilde{S}, d \in D. 
+		V_n(\tilde{s},d) = &\max_{a \in \mathcal{X} (\tilde{s})} \{ r(\tilde{s}, d, a)  \\
+		&+ \gamma \sum_{d' \in D} q_d(d') V_{n+1}(T(\tilde{s}, d, a), d') \}, \\ 
+		&\tilde{s} \in \tilde{S}, d \in D, 0 \leq n \leq N-1. 
 	\end{split}
 \end{equation}
 \section{The Agent}
+\label{sec:agent}
 %The agent you designed for your environment. Justify your choice and design and explain briefly how you implemented/configured it. Naturally, if you took a %ready-made environment, you should invert relatively much more effort into this section than the previous one.
 In this paper we evaluate the performance of three agents based on different algorithms: a heuristic based on the $(\varsigma, Q)$-Policy that we use as the baseline for performance evaluation, an approximate SARSA algorithm and an implementation of the REINFORCE algorithm. \newline
 \textbf{The $(\varsigma, Q)$-Policy} based agent is not smart in the way that it does not learn over time. Due to the popularity of the $(\varsigma, Q)$-Policy in practice we use it as a baseline for performance evaluation of the other agents. In the heuristic we iterate over $s_1, ..., s_k$ and replenish the respective warehouses by some amount $a_i = Q_i$ if the current stock is below a level $\varsigma_i$ and there is still stock left in the factory $s_0$. At the end we set the production level for the next period to $Q_0$ if $s_0 - \sum_{i=1}^{k}a_i < \varsigma_0$ and $0$ otherwise. The thresholds $\varsigma$ and replenishment levels $Q$ need to be set by the user when initializing the agent.
@@ -192,12 +194,6 @@ When testing the approximate SARSA algorihm we found that for some environments 
 	\delta_n = r(\tilde{s_n}, d_n, a_n) + \gamma \theta_n^T \phi(\tilde{s}_{n+1}, a_{n+1}) - \theta_n^T\phi(\tilde{s}_n, a_n)
 \end{equation}
 that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{100}, +1\mathrm{e}{100}]$. Furthermore we initialize the agent with a very small stepsize $\alpha$. 
-
-
-
-
-
-
 \textbf{REINFORCE} is based on a parametrized policy for which the expected reward has to be maximized. We assume our policy to be parametrized as a softmax function for multiple actions. The softmax function assigns a probability for each action and thus behaves as a stochastic policy which can, however, converge to a deterministic one. 
 We discretize the action space such that we only have three available actions per entity (for each warehouse and the factory). For a warehouse, for example, these possible actions are an order of  0,1 or 2 full trucks from the factory. For a given state, some actions might not be available. Since a projection of an unfeasible action to the closest feasible action is not possible in our environment, we used an alternative approach which only updates parameters for available actions. 
 This leads to the following policy parametrization:
@@ -239,17 +235,10 @@ A gradient ascent method is used to find the parameters that maximize the expect
 \end{equation}
 The full derivation for this gradient is shown in the Appendix.\newline
 A key parameter for this algorithm is the learning rate which we left constant, but close to zero since a small learning rate allows a lot of exploration which is needed for all parameters to adapt. 
-
-
-
 \section{Results and Discussion}
-
-
-
+\label{sec:results}
 %This is one of the most important sections. You put your agent to the test in the environment, you show -- and most importantly -- you interpret the results.
-
 \subsection{Performance of your Agent in your Environment}
-
 %Show plots, graphs, tables (e.g., Table~\ref{a_table}), etc. You may wish to encourage readers to reproduce results for themselves, e.g., run \texttt{runDemo.py} in our source code. Show how your agent performs well, or, if it doesn't perform well, it is better to explain why (this is a result in itself!). In any case, you \emph{must} highlight the weaknesses of your agent as well as its strengths. \newline
 %\begin{table}[h]
 %	\caption{\label{a_table}This table is just an example.}
@@ -263,14 +252,11 @@ A key parameter for this algorithm is the learning rate which we left constant, 
 %		\hline
 %	\end{tabular}
 %\end{table}
-
-
 To test the algorithms, two main test were done. All of the tests were computed using 10000 episodes of 24 steps each in which our demand distributions make a whole cycle, allowing it to have the full seasonal demand.\newline
 %%%%%%%%%%%%
 %The first test with only the factory and one warehouse includes %production cost, a storage cost for the warehouse only, a %transportation cost, and a penalty cost for not delivering enough %products. A strategy for the agents to learn is that even though %the costs for production, storing and transportation give a %negative short-term reward, they are necessary to avoid huge %penalty costs in the future. Since the demand increases towards %the end of the year, the optimal strategy is to build up stock, %since production alone cannot satisfy this demand.
 %%%%%%%%%%%%%%%
 The first test is a simple test, having only the factory and one warehouse,  with no storage cost in the factory and small cost of production, transportation and storage in the warehouse. The objective of this test was to see if the agents can learn that even if producing, sending and storing is a bad decision in short term, because there is a penalty cost that accumulates for not sending the goods to the warehouse, the overall strategy should be to do it anyway.
-
 %%%%%%%%%%
  But because there is a cost of production, the optimal strategy would be to not build as much as we can but to build enough to be able to satisfy the season of high demand but no more than that.
 \begin{figure}[h]
