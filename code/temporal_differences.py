@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Feb 22 10:53:43 2018
-
-@author: lukaskemmer
-"""
 
 import numpy as np
 import numba as nb

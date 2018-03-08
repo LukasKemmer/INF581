@@ -5,9 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from s_q_agent import s_q_agent
 from approximate_sarsa import approximate_sarsa_agent
-#from approximate_sarsa_V2 import approximate_sarsa_agent_V2
 from approximate_sarsa_V3 import approximate_sarsa_agent_V3
-from approximate_sarsa_V4 import approximate_sarsa_agent_V4
 from supply_distribution import SupplyDistribution
 from reinforce3 import REINFORCE_agent
 from evaluate_agent import evaluate_agent
@@ -49,7 +47,7 @@ add_reinforce_3 = False
 add_reinforce_4 = False
 
 # Simple2,3,4, Medium,2,3,4, weird,2, Difficult
-test_to_run = [False, False, False, False, False, False, False, False, False, False]
+test_to_run = [False, False, False, True, False, False, False, False, False, False]
 
 # Instantiate environment
 environments.append(SupplyDistribution(n_stores=1,

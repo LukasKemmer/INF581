@@ -14,15 +14,15 @@ def add_graph_to_show(agent_code_name, agent_label_name):
 
 
 # Variables
-add_q_s = True
-add_sarsa = True
+add_s_q = True
+add_sarsa = False
 add_sarsa_V3 = False
 add_reinforce_1 = False
 add_reinforce_2 = True
 add_reinforce_3 = False
 add_reinforce_4 = False
 tests = ["simple_environment_2", "simple_environment_3", "simple_environment_4", "medium_environment", "medium_environment_3stores", "medium_environment_3stores2", "medium_hard_environment_2", "weird_environment", "weird_environment_2", "difficult_environment"]
-tests_to_graph = [False, False, False, False, False, False, False, False, False, False]
+tests_to_graph = [False, False, False, False, False, False, False, False, True, False]
 results_folder_path = "../results/"
 reward_plot_step = 10
 colors = ['g', 'c', 'm', 'y', 'r', 'b']
@@ -31,7 +31,7 @@ colors = ['g', 'c', 'm', 'y', 'r', 'b']
 # Create auxiliary lists
 agents = []
 agent_labels = []
-add_q_s and add_graph_to_show("q_s", "q_s")
+add_s_q and add_graph_to_show("s_q", "s_q")
 add_sarsa and add_graph_to_show("sarsa_V1", "Sarsa")
 add_sarsa_V3 and add_graph_to_show("sarsa_V3", "Sarsa V3")
 add_reinforce_1 and add_graph_to_show("reinforce3", "REINFORCE")
@@ -71,9 +71,14 @@ for test_num in range(len(tests)):
                 plt.legend()
                 plt.show()
         if True:
-            fig3 = plt.figure(figsize=(10, 4), dpi=120)
+            #fig3 = plt.figure(figsize=(10, 4), dpi=120)
             for agent_num in range(len(agents)):
-                fig3.add_subplot(2, 1, 1 + agent_num)
+                fig3 = plt.figure(figsize=(10, 4), dpi=120)
+                #subplot = fig3.add_subplot(2, 1, agent_num + 1)
+               # if agent_num == 0:
+                #    subplot.set_title("Stocks for the (&; Q)-Policy")
+                #if agent_num == 1:
+                #    subplot.set_title("Stocks for the REINFORCE")
                 agent = agents[agent_num]
                 best_stocks = pd.read_csv(results_folder_path + test + "_" + agent + "_best_stocks.csv", header=None).values
                 # best_demands = pd.read_csv(results_folder_path + test + "_" + agent + "_best_demands.csv", header=None).values
@@ -85,9 +90,9 @@ for test_num in range(len(tests)):
                 if best_stocks.shape[1] > 3:
                     plt.plot(best_stocks[:-1, 3], 'y', label='Stock warehouse 3')
                 plt.plot(best_stocks[:-1,0], 'b', label='Stock factory')
-                # plt.plot(np.zeros(len(best_stocks)), 'k', label='0')
+                plt.plot(np.zeros(len(best_stocks)), 'k')
                 plt.xlabel('steps')
                 plt.ylabel('stock')
-                if agent_num==0:
-                    plt.legend()
+                #if agent_num==0:
+                plt.legend()
             plt.show()

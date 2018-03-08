@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Feb 24 13:06:37 2018
-@author: lukaskemmer
-"""
+
 #from supply_distribution import SupplyDistribution
 import numpy as np
 import numba as nb

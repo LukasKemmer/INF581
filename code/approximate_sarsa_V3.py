@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Feb 24 13:06:37 2018
-@author: lukaskemmer
-"""
+
 #from supply_distribution import SupplyDistribution
 import numpy as np
 import numba as nb
@@ -16,10 +13,10 @@ class approximate_sarsa_agent_V3(object):
         self.env = env
         
         # Initialize theta random
-        self.theta = np.random.rand(23)
+        self.theta = np.random.rand(14+3*env.n_stores)
         self.thetas = [self.theta.copy()]
         # Initialize the stepsize alpha
-        self.alpha = 0.02
+        self.alpha = 0.0001
         # Initialize Epsilon for epsilon greedy
         self.epsilon = 0.99999
         # Initialize agent parameters for stepsize rule        
@@ -57,7 +54,7 @@ class approximate_sarsa_agent_V3(object):
         s_next = ((state[0:n_stores + 1] - np.hstack((0, d_next))).T + action).T
         s_next[0] -= np.sum(action[:, 1:], axis=1)
         s_next = np.minimum(s_next, cap_store)
-
+        
         # Save size of s_next
         s_shape = (s_next.shape[0]-1, s_next.shape[1])
 
@@ -74,28 +71,34 @@ class approximate_sarsa_agent_V3(object):
         # All negative states
         phi[2, :] = ((state[1:self.env.n_stores + 1] < 0) * 1).reshape(self.env.n_stores, 1)
         # Demand cannot be satisfied
-        phi[3, :] = (state[1:self.env.n_stores + 1] + action[:, 1:self.env.n_stores + 1] - 2 * state[ self.env.n_stores + 1:2 * self.env.n_stores + 1] + state[ 2 * self.env.n_stores + 1:] < 0).T
+        phi[3:3+n_stores, :] = (state[1:self.env.n_stores + 1] + action[:, 1:self.env.n_stores + 1] - 2 * state[ self.env.n_stores + 1:2 * self.env.n_stores + 1] + state[ 2 * self.env.n_stores + 1:] < 0).T
         # Number of trucks being send
-        phi[4, :] = (np.ceil(action[:, 1:self.env.n_stores + 1] / self.env.cap_truck)).T
+        phi[3+n_stores:3+2*n_stores, :] = (np.ceil(action[:, 1:self.env.n_stores + 1] / self.env.cap_truck)).T
         # How empty is the truck
-        phi[5, :] = np.ceil(action[:, 1] / self.env.cap_truck) - action[:, 1] / self.env.cap_truck
+        phi[3+2*n_stores:3+3*n_stores, :] = np.ceil(action[:, 1] / self.env.cap_truck) - action[:, 1] / self.env.cap_truck
         # Penalty cost
-        phi[6,:] = np.minimum(np.zeros(s_shape), s_next[1:,:]) / 10
+        phi[3+3*n_stores,:] = sum(np.minimum(np.zeros(s_shape), s_next[1:,:])) / 10
+        # Penalty cost reduction
+        #phi[7, :] = phi[6,:]-(np.minimum(np.zeros(s_shape), state[1:2].repeat(s_shape[1])) / 10)
         # Factory stock can satisfy next estimated demand
-        phi[7,:] = (s_next[0] >= np.sum(d_next))*1
+        # phi[7,:] = (s_next[0] >= np.sum(d_next))*1
         # production rest
         production_rest = (state[0] + action[:, 0] - sum(action[:, 1:].T))
-        if production_rest != s_next[0]:
-            print ("error calculating s_next or production rest")
         #phi[8,:] = production_rest
         # Stock will be in the % after producing and sending
-       # for period in range(1):
+        # for period in range(1):
             #if np.floor(((self.env.t%24))/3) == period:
              #   production_rest = (state[0] + action[:, 0] - sum(action[:, 1:].T))
             #else:
             #    production_rest = -1
+        #for i in range(11):
+        #    phi[8 + i + 0, :] = (production_rest - (store_cap[0]*0.1*i))/10
+        #for i in range(10):
+        #    phi[8+i+0, :] = production_rest >= (store_cap[0]*0.1*i)
+        #for i in range(10):
+        #    phi[18 + i + 0, :] = production_rest <= (store_cap[0] * (1-0.1 * i))
         for i in range(10):
-            phi[8+i+0, :] = np.logical_and(production_rest > (store_cap[0]*0.1*i), production_rest <= (store_cap[0]*0.1*(i+1)))
+            phi[4+3*n_stores+i, :] = np.logical_and(production_rest > (store_cap[0]*0.1*i), production_rest <= (store_cap[0]*0.1*(i+1)))
         #for period in range(8):
         #    if np.floor(((self.env.t%24))/4) == period:
         #        phi[8 + period * 2, :] = action[:, 0]
@@ -104,8 +107,10 @@ class approximate_sarsa_agent_V3(object):
         #        phi[8 + period * 2, :] = 0
         #        phi[9 + period * 2, :] = 0
         # Stock will be in the % after sending and possible demand
-        for i in range(5):
-            phi[18+i, :] = np.logical_and(s_next[1] > (store_cap[1] * 0.2 * i),  s_next[1] <= (store_cap[1] * 0.2 * (i + 1)))
+        # stock_rest = state[0] + action[:, 0] - sum(action[:, 1:].T)
+        #phi[19, :] = s_next[1] == 0
+        #for i in range(5):
+        #    phi[20+i, :] = np.logical_and(s_next[1] > (store_cap[1] * 0.2 * i),  s_next[1] <= (store_cap[1] * 0.2 * (i + 1)))
         # Format output in case of single action input
         if action_dim == 1:
             return phi.reshape((theta_size,))
@@ -135,8 +140,7 @@ class approximate_sarsa_agent_V3(object):
 
         # Update theta
         self.theta += self.alpha * delta * self.phi(state, action)        
-        
-        # LOG TODO: implement "logger"
+
         self.thetas.append(self.theta.copy())
         
         # Update alpha, epsilon and n
