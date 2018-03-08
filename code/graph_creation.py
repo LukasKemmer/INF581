@@ -25,7 +25,7 @@ add_reinforce_4 = False
 tests = ["simple_environment_2", "simple_environment_3", "simple_environment_4", "medium_environment", "medium_environment_3stores", "medium_environment_3stores2", "medium_hard_environment_2", "special_environment", "special_environment_2", "difficult_environment"]
 tests_to_graph = [False, False, False, True, False, False, False, True, False, False]
 results_folder_path = "../results/"
-reward_plot_step = 10
+#reward_plot_step = 10
 colors = ['g', 'c', 'm', 'y', 'r', 'b']
 
 
@@ -48,8 +48,8 @@ for test_num in range(len(tests)):
             agent = agents[agent_num]
             rewards = pd.read_csv(results_folder_path + test + "_" + agent + "_rewards.csv", header=None).values.flatten()
             #plt.title("Rewards for " + test)
-            plt.plot(rewards[::reward_plot_step], colors[agent_num], label=agent_labels[agent_num])
-            plt.xlabel('episodes')
+            plt.plot(rewards[::10], colors[agent_num], label=agent_labels[agent_num])
+            plt.xlabel('episodes/10')
             plt.ylabel('reward')
             plt.legend()
         plt.show()

@@ -39,7 +39,7 @@ env_names = []
 
 # Agent Variables
 add_s_q = True
-add_sarsa = False
+add_sarsa = True
 add_sarsa_V3 = False
 add_reinforce_1 = False
 add_reinforce_2 = True
@@ -47,7 +47,7 @@ add_reinforce_3 = False
 add_reinforce_4 = False
 
 # Simple2,3,4, Medium,2,3,4, weird,2, Difficult
-test_to_run = [False, False, False, True, False, False, False, False, False, False, False]
+test_to_run = [False, False, False, False, False, False, False, False, True, False, False]
 
 # Instantiate environment
 environments.append(SupplyDistribution(n_stores=1,
@@ -98,11 +98,11 @@ environments.append(SupplyDistribution(n_stores=1,
                          max_prod=3,
                          store_cost=np.array([0, 0.1]),
                          truck_cost=np.array([1]),
-                         cap_store=np.array([50, 30]),
+                         cap_store=np.array([50, 10]),
                          penalty_cost=1,
-                         price=1,
+                         price=2,
                          gamma=1,
-                         max_demand = 4,
+                         max_demand = 5,
                          episode_length = max_steps))
 env_names.append("medium_environment")
 
