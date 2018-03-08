@@ -47,7 +47,7 @@ add_reinforce_3 = False
 add_reinforce_4 = False
 
 # Simple2,3,4, Medium,2,3,4, weird,2, Difficult
-test_to_run = [False, False, False, False, False, False, False, False, True, False, False]
+test_to_run = [False, False, False, True, False, False, False, False, True, False, False]
 
 # Instantiate environment
 environments.append(SupplyDistribution(n_stores=1,
