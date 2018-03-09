@@ -178,7 +178,8 @@ One of the crucial tasks when designing the approximate SARSA agent is the model
 		\hat{s}(\tilde{s}, a) &= T(\tilde{s}, \hat{d}(\tilde{s}), a)_{(d, d_{last})},
 	\end{split}
 \end{equation}
-where $T(\cdot)_{(d, d_{last})}$ is the transition function excluding its last two elements. This way the agent can get a basic understanding of rewards and penalties associated with $\hat{s}$. Among others we use the expected penalty costs, the expected reward and the squared difference of the stock levels $s$ from their $25\%, 50\%$ and $75\% $ maximum capacity. Furthermore we include the respective rewards and costs for two scenarios where $\hat{d}^+=\hat{d}(\tilde{s}) + 1$ and $\hat{d}^-=\hat{d}(\tilde{s})  - 1$. While designing the agent we ended up with two different functions $\phi$ and $\phi^\prime$ that affect the agents behavior. Both functions have been tested and are included in our code. We encourage the reader to try out both. A full list of all features can be found in the appendix. \newline
+where $T(\cdot)_{(d, d_{last})}$ is the transition function excluding its last two elements. This way the agent can get a basic understanding of rewards and penalties associated with $\hat{s}$. Among others we use the expected penalty costs, the expected reward and the squared difference of the stock levels $s$ from their $25\%, 50\%$ and $75\% $ maximum capacity. Furthermore we include the respective rewards and costs for two scenarios where $\hat{d}^+=\hat{d}(\tilde{s}) + 1$ and $\hat{d}^-=\hat{d}(\tilde{s})  - 1$. %While designing the agent we ended up with two different functions $\phi$ and $\phi^\prime$ that affect the agents behavior. Both functions have been tested and are included in our code. We encourage the reader to try out both.%
+A full list of all features can be found in the appendix. \newline
 %The underlying intuiton for the definition of $\phi$ is to value states $\tilde{s}$ based on an approximation of the individual storage levels, recent demands $(d_{last}, d_{hist})$ and the sales price $p$. We assume that the stock in each warehouse $s_1,..., s_k$ will be roughly equivalent to the current stock level minus the current demand (which is used as a proxy of the demand in the next step). For the factory $s_0$ we solely regard the current storage level but deduct the production cost $\kappa_{pr}$ from the sales price. Based on this intuition we can define $\phi: S \times D \times A \rightarrow \mathbb{R}^{k+1}$ by
 %\begin{equation}
 %	\label{eq:sarsa_phi}
@@ -255,9 +256,10 @@ To test the algorithms, two main test were done. All of the tests were computed 
 %%%%%%%%%%%%
 %The first test with only the factory and one warehouse includes %production cost, a storage cost for the warehouse only, a %transportation cost, and a penalty cost for not delivering enough %products. A strategy for the agents to learn is that even though %the costs for production, storing and transportation give a %negative short-term reward, they are necessary to avoid huge %penalty costs in the future. Since the demand increases towards %the end of the year, the optimal strategy is to build up stock, %since production alone cannot satisfy this demand.
 %%%%%%%%%%%%%%%
-The first test is a simple test, having only the factory and one warehouse,  with no storage cost in the factory and small cost of production, transportation and storage in the warehouse. The objective of this test was to see if the agents can learn that even if producing, sending and storing is a bad decision in short term, because there is a penalty cost that accumulates for not sending the goods to the warehouse, the overall strategy should be to do it anyway.
+The first test is a simple test, having only the factory and one warehouse,  with no storage cost in the factory and small cost of production, transportation and storage in the warehouse. 
+%The objective of this test was to see if the agents can learn that even if producing, sending and storing is a bad decision in short term, because there is a penalty cost that accumulates for not sending the goods to the warehouse, the overall strategy should be to do it anyway.
 %%%%%%%%%%
- But because there is a cost of production, the optimal strategy would be to not build as much as we can but to build enough to be able to satisfy the season of high demand but no more than that.
+ %But because there is a cost of production, the optimal strategy would be to not build as much as we can but to build enough to be able to satisfy the season of high demand but no more than that.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\columnwidth]{medium_2_env_rewards.png}
@@ -265,22 +267,24 @@ The first test is a simple test, having only the factory and one warehouse,  wit
 \end{figure}
 \newline
 The graph seen in Figure 3 shows that both the approximate SARSA algorithm and the REINFORCE can learn this task, with the REINFORCE algorithm having slightly better results and with notable better results that the $(\varsigma, Q)$-Policy based agent, who sends and produces goods before they are needed and ends up getting a higher penalty. This shows that the basis of our environment can be learned by our agents even if they are only getting weak signals.\newline
-The second test is a harder environment. In this environment the number of warehouses went up to 3, each with different properties. The first warehouse has a high storage and transportation cost, the second warehouse has no storage cost but high transportation cost and the third one no transportation nor storage cost. Furthermore, because of how the production and the demand are balanced there are not enough goods to satisfy all the demand, the agent need to learn everything he learned in the simple scenario but also to prioritize some warehouses before others.
+The second test is a harder environment. 
+In this environment the number of warehouses went up to 3, with the particularity of having warehouse n°3 with no storage or transportation costs.
+%In this environment the number of warehouses went up to 3, each with different properties. The first warehouse has a high storage and transportation cost, the second warehouse has no storage cost but high transportation cost and the third one no transportation nor storage cost. Furthermore, because of how the production and the demand are balanced there are not enough goods to satisfy all the demand, the agent need to learn everything he learned in the simple scenario but also to prioritize some warehouses before others.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\columnwidth]{weird_2_env_rewards.png}
 	\caption{\label{weird_2_env_rewards} Rewards over time for the three agents in the second test.}
 \end{figure}
 \begin{figure}
-	\centering
-	\begin{subfigure}[b]{0.5\textwidth}
-		\includegraphics[width=\columnwidth]{reinforce_stocks.png}
+	\raggedleft
+	\begin{subfigure}[b]{0.24\textwidth}
+		\includegraphics[width=1.2\columnwidth]{reinforce_stocks.png}
 		\caption{Stocks for the $(\varsigma, Q)$-Policy based agent.}
 		\label{reinforce_stocks}
 	\end{subfigure}
-	\newline
-	\begin{subfigure}[b]{0.5\textwidth}
-		\includegraphics[width=\columnwidth]{s_q_stocks.png}
+	%\newline
+	\begin{subfigure}[b]{0.24\textwidth}
+		\includegraphics[width=1.2\columnwidth]{s_q_stocks.png}
 		\caption{ Stocks for the REINFORCE agent.}
 		\label{s_q_stocks}
 	\end{subfigure}
@@ -288,8 +292,9 @@ The second test is a harder environment. In this environment the number of wareh
 	 \vspace{-20pt}
 \end{figure}
 This second graphs seen in Figure 4 shows the $(\varsigma, Q)$-Policy based agent who begins with better results thanks to his simple yet good solution, but after all the training the REINFORCE algorithm manages to learn a better strategy. As shown in Figure 5, the storage levels in the differents stores for the $(\varsigma, Q)$-Policy strategy are pretty similar while on the REINFORCE we have the warehouse 1 who has at beginning almost zero stock due to its high storage cost, and when the demand is too high the first two warehouses are forfeit to the third one, because of its zero cost of storage and transportation. \newline
-The SARSA on the other hand does not manage to learn the right strategy, building less stock during the low demand and not prioritizing early warehouse n°3. This comes from the fact that the SARSA algorithm is really dependant on his set of features and can only learn strategies that could be obtained with a right combination of weights for this features. And because this weight can't be positive and negative at the same time, a simple feature like "storage level" can't tell the algorithm how much to store but only that storing is good or bad. So a balance between the features needs to be reached, where the agent can say that producing is good unless there is too much. This balancing of feature is hard to learn and provoques bad results in too complicated scenarios. This might be solved with a different combination of features but for this particulars parameters none was found.\newline
-Other test also showed a small issue for the REINFORCE learning. Because the actions provided are limited to sending 0, 1 or 2 full trucks, there is a problem in some scenarios if the maximum posible production is notably lower than the truck capacity. This issue could be solved by chanching the posible actions of the REINFORCE algorithm but require some understanding of scenario and is not ideal. 
+The SARSA on the other hand does not manage to learn the right strategy, building less stock during the low demand and not prioritizing early warehouse n°3. This comes from the fact that the SARSA algorithm is really dependant on his set of features and can only learn strategies that could be obtained with a right combination of weights for this features.
+%And because this weight can't be positive and negative at the same time, a simple feature like "storage level" can't tell the algorithm how much to store but only that storing is good or bad. So a balance between the features needs to be reached, where the agent can say that producing is good unless there is too much. This balancing of feature is hard to learn and provoques bad results in too complicated scenarios. This might be solved with a different combination of features but for this particulars parameters none was found.\newline
+%Other test also showed a small issue for the REINFORCE learning. Because the actions provided are limited to sending 0, 1 or 2 full trucks, there is a problem in some scenarios if the maximum posible production is notably lower than the truck capacity. This issue could be solved by chanching the posible actions of the REINFORCE algorithm but require some understanding of scenario and is not ideal. 
 The readers are encouraged to create their own scenarios in \textit{testing.py} to see the different performances of the agents. To compare their performances or recreate the graphs seen in this paper \textit{graph\_creation.py} needs to be run.
 
  
@@ -312,8 +317,8 @@ requires parameters for each action. This requires a lot of training and can lea
 Unfortunately, our implementation of using independent Gaussians to parametrize the actions for each entity individually failed to show reasonable learning and was therefore dropped from this report.
 
 
-	This section summarizes the paper: Your environment and agent, its strength and its weaknesses. Also remark about what would be the next steps you would take if you or someone else were to continue/extend this project. 
-	Note that for the initial submission you are limited strictly to 4 pages (double column), \emph{not including references}. An extra page will be allowed for final submission (after the initial reviews). 
+%	This section summarizes the paper: Your environment and agent, its strength and its weaknesses. Also remark about what would be the next steps you would take if you or someone else were to continue/extend this project. 
+%	Note that for the initial submission you are limited strictly to 4 pages (double column), \emph{not including references}. An extra page will be allowed for final submission (after the initial reviews). 
 
 \section{Appendix}
 Derivation of the gradient for REINFORCE:
