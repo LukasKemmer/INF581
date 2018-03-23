@@ -19,6 +19,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsthm}
+\usepackage{tabularx}
 % Theorems and definitions
 \theoremstyle{plain}
 \newtheorem{thm}{Theorem}
@@ -56,7 +57,7 @@
 %Do not change the formatting (columns, margins, etc). Hint: shared tools like \texttt{http://sharelatex.com/} and \texttt{http://overleaf.com/} are great tools for collaborating on a multi-author report in latex. If you wish to use Word, base it on the IEEE template\footnote{\url{https://www.ieee.org/publications_standards/publications/conferences/2014_04_msw_a4_format.doc}} and convert to \texttt{pdf} for submission. 
 In the following paper we implement three different reinforcement learning agents and evaluate their performance within a supply chain environment. All the code used to create the results presented in this paper can be found here \footnote{Our code is available here:\url{https://uploadfiles.io/f8g2x}}. \newline
 The supply chain optimization environment represents a problem faced by companies whose supply chain consists of a factory and multiple warehouses (so called hub-and-spoke networks as described by \cite{MFL}). The main decision that needs to be made in these settings is how many products should be produced in the factory and how much stock should be build up in the warehouses. Seasonal demand can further complicate the decision problem since it might require the companies to start building up stock early so that high demands in the future can be satisfied (e.g. think about christmas where the stock of eggnog needs to be build up during november and december to be able to satisfy the high demand levels during the holidays). This requirement for mid- to long-term planning indicates that the problem can be formulated as a multi-step decision problem and further exhibits a weak signal because the reward for an early build-up of stock will only be realized in the future when the actual demand reaches its maximum. \newline
-Even for small supply chain networks we find that due to the curses of dimensionality, as described by \cite{PowellADP}, the state- and action-spaces of the respective decision problems become unfeasebly large. Therefore we turn to function-approximation and policy-search methods of reinforcement learning that are less affected by these problems. In our case we chose approximate SARSA and the REINFORCE algorithm as a basis for the agents.
+Even for small supply chain networks we find that due to the curses of dimensionality, as described by \cite{PowellADP}, the state- and action-spaces of the respective decision problems become unfeasebli large. Therefore we turn to function-approximation and policy-search methods of reinforcement learning that are less affected by these problems. In our case we chose approximate SARSA and the REINFORCE algorithm as a basis for the agents.
 \section{Background and Related Work}
 \label{sec:background}
 %Elaborate (in your own words) the background material required to understand your work. It should cover a subset of the topics touched upon in the course. You are encouraged to cite topics in lectures, e.g., structured output prediction in \cite{LectureSOP}, book chapters, e.g., Chapter 9 from \cite{Barber}, or articles from the literature, e.g., \cite{Astar,DeepMindSC2}. Basically, you should prepare the reader to understand what you are about to present in the following sections. Eq.~\eqref{eq:MAP} shows a random equation.
@@ -80,7 +81,8 @@ Among others we use a so called search-then-converge stepsize rule as presented 
 \label{eq:stc}
 	\alpha_n = \alpha_0 \frac{\frac{b}{n} + a}{ \frac{b}{n} + a + n^{\beta}}
 \end{equation}
-with some parameters $\alpha_0, b, a$ and $\beta$ that can be set by the user based on the required behavior of the stepsize.
+with some parameters $\alpha_0, b, a$ and $\beta$ that can be set by the user based on the required behavior of the stepsize. %\newline
+%For further reading on the application of reinforcement learning we recommend XX that apply a Q-learning agent to the so called ``Beer game'' where multiple agents need to coordinate their ordering policies.
 %\begin{figure}[h]
 %	\label{fig:stc_stepsize}
 %	\centering
@@ -179,7 +181,7 @@ One of the crucial tasks when designing the approximate SARSA agent is the model
 	\end{split}
 \end{equation}
 where $T(\cdot)_{(d, d_{last})}$ is the transition function excluding its last two elements. This way the agent can get a basic understanding of rewards and penalties associated with $\hat{s}$. Among others we use the expected penalty costs, the expected reward and the squared difference of the stock levels $s$ from their $25\%, 50\%$ and $75\% $ maximum capacity. Furthermore we include the respective rewards and costs for two scenarios where $\hat{d}^+=\hat{d}(\tilde{s}) + 1$ and $\hat{d}^-=\hat{d}(\tilde{s})  - 1$. %While designing the agent we ended up with two different functions $\phi$ and $\phi^\prime$ that affect the agents behavior. Both functions have been tested and are included in our code. We encourage the reader to try out both.%
-A full list of all features can be found in the appendix. \newline
+A full list of all features can be found in the appendix A. Note that the described features are - if applicable - computed for both the demand, the estimated demand and the scenario-based demands (and the corresponding scenario-based states). \newline
 %The underlying intuiton for the definition of $\phi$ is to value states $\tilde{s}$ based on an approximation of the individual storage levels, recent demands $(d_{last}, d_{hist})$ and the sales price $p$. We assume that the stock in each warehouse $s_1,..., s_k$ will be roughly equivalent to the current stock level minus the current demand (which is used as a proxy of the demand in the next step). For the factory $s_0$ we solely regard the current storage level but deduct the production cost $\kappa_{pr}$ from the sales price. Based on this intuition we can define $\phi: S \times D \times A \rightarrow \mathbb{R}^{k+1}$ by
 %\begin{equation}
 %	\label{eq:sarsa_phi}
@@ -195,7 +197,8 @@ When testing the approximate SARSA algorihm we found that for some environments 
 	\delta_n = r(\tilde{s_n}, d_n, a_n) + \gamma \theta_n^T \phi(\tilde{s}_{n+1}, a_{n+1}) - \theta_n^T\phi(\tilde{s}_n, a_n)
 \end{equation}
 that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{100}, +1\mathrm{e}{100}]$. Furthermore we initialize the agent with a very small stepsize $\alpha$. 
-\textbf{REINFORCE} is based on a parametrized policy for which the expected reward has to be maximized. We assume our policy to be parametrized as a softmax function for multiple actions. The softmax function assigns a probability for each action and thus behaves as a stochastic policy which can, however, converge to a deterministic one. 
+\newline
+\textbf{REINFORCE} is based on a parametrized policy for which the expected reward has to be maximized. We parametrize our policy as a softmax function for multiple actions. The softmax function assigns a probability for each action and thus behaves as a stochastic policy which can, however, converge to a deterministic one. 
 We discretize the action space such that we only have three available actions per location (for each warehouse and the factory). For a warehouse, for example, these possible actions are an order of  0,1 or 2 full trucks from the factory. For a given state, some actions might not be available. Since a projection of an unfeasible action to the closest feasible action is not possible in our environment, we used an alternative approach which only updates parameters for available actions. 
 This leads to the following policy parametrization:
 \begin{equation}
@@ -213,12 +216,12 @@ where
 \begin{equation}
    f(a^{(j)}|s) =
    \begin{cases}
-     1 & \text{if $a^{(j)}$ is allowed in state s} \\
-     0 & \text{otherwise} \\ 
+     1 & \text{if $a^{(j)}$ is allowed in state s,} \\
+     0 & \text{otherwise.} \\ 
    \end{cases}
 \end{equation}
 As we allow 3 different actions per entity, the number of possible actions is $n_a = 3^{(k+1)}$. 
-The feature map $\phi(s): \mathbb{Z}^{k+1} \rightarrow \mathbb{R}^{d}$ maps the state into a space of dimension d in which an optimal action is easily seperable from the other ones. We tried several different options for $\phi(s)$ including first and second order terms and radial basis functions. We always include a bias term as well.
+The feature map $\phi(s): \mathbb{Z}^{k+1} \rightarrow \mathbb{R}^{d}$ maps the state into a space of dimension d in which an optimal action is easily seperable from the other ones. We tried several different options for $\phi(s)$ including first and second order terms and radial basis functions. We also include the most recent demand and the change of demand in the last time step. This additional information about the state is needed to include the time dependency of the seasonal cycle. We always include a bias term as well.
 The parameter matrix $\Theta$ is assembled in the following way:
 \begin{equation}
 	\Theta = \big(w_1|w_2|...|w_{n_a}\big) \in \mathbb{R}^{d \times n_a }
@@ -237,6 +240,9 @@ A gradient ascent method is used to find the parameters that maximize the expect
 \end{equation}
 The full derivation for this gradient is shown in the Appendix.\newline
 A key parameter for this algorithm is the learning rate which we left constant, but close to zero since a small learning rate allows a lot of exploration which is needed for all parameters to adapt. 
+
+
+
 \section{Results and Discussion}
 \label{sec:results}
 %This is one of the most important sections. You put your agent to the test in the environment, you show -- and most importantly -- you interpret the results.
@@ -255,6 +261,8 @@ A key parameter for this algorithm is the learning rate which we left constant, 
 %	\end{tabular}
 %\end{table}
 To test the algorithms, two main test were done. All of the tests were computed using episodes of 24 steps each in which our demand distributions make a whole cycle, allowing it to have the full seasonal demand.\newline
+
+
 %%%%%%%%%%%%
 %The first test with only the factory and one warehouse includes %production cost, a storage cost for the warehouse only, a %transportation cost, and a penalty cost for not delivering enough %products. A strategy for the agents to learn is that even though %the costs for production, storing and transportation give a %negative short-term reward, they are necessary to avoid huge %penalty costs in the future. Since the demand increases towards %the end of the year, the optimal strategy is to build up stock, %since production alone cannot satisfy this demand.
 %%%%%%%%%%%%%%%
@@ -313,19 +321,61 @@ Our implementation of the approximate SARSA algorithm uses a very specific value
 \newline
 In general, the REINFORCE approach is very nicely applicable to the Alife environment as was shown in the lab. Allowing multiple possible actions can also be a reasonable extension. Our implementation, however, is not directly transferable, since we use additional information about which actions are possible which is not available in the Alife environment.
 \section{Conclusion and Future Work}
-The REINFORCE approach is certainly a viable option for this environment as it performs well in each scenario. Of course, the algorithm does have some downsides. As a gradient ascend algorithm it can easily get stuck in local optima which can easily arise in this most likely non-convex setting. 
+The REINFORCE approach is certainly a viable option for this environment as it performs well in each scenario. Of course, the algorithm does have some downsides. As a gradient ascent algorithm it can easily get stuck in local optima which can easily arise in this most likely non-convex setting. 
 Additional drawbacks come from the softmax parametrization which 
 requires parameters for each action. This requires a lot of training and can lead to difficulties for actions that are rarely feasible. Moreover, the actions to replenish 0, 1 or 2 trucks are treated as completely separate, dropping the possibility to make use of their natural order. Another parametrization that would make use of this order would be e.g. a Gaussian setting. 
 Unfortunately, our implementation of using independent Gaussians to parametrize the actions for each entity individually failed to show reasonable learning and was therefore dropped from this report.
-Meanwhile, the SARSA approach didn't yield the results we were expecting. Due to its nature of optimizing features, the score really depend on how good this features can explain the environment and allow the model to learn. With a different set of features this might have resulted but for now we have to say that the SARSA is not solving the complicated environments. 
+Another aspect to mention is the high variance that can be seen in the plots for the REINFORCE algorithm. In fact, these occur due to a small learning rate that is necessary to retain exploration. In fact, as the learning proceeds, the softmax function assigns a decreasing probability to non-optimal actions which would eventually results in a convergence to a deterministic policy that shows very little variance. 
+
+A crucial aspect for both approaches is feature engineering. The features have to contain all the information necessary to find the best strategy. Often a linear dependency of the optimal action on the current state is reasonable enough. E.g. the best action for the replenishment of products for a warehouse might depend linearly on the current stock in that warehouse. But also more complex, non-linear dependencies might be present which then have to be considered in feature engineering. A promising alternative might be to use a deep neural network in order for the agent to be able to adapt to any non-linear dependency. 
+
+
+
+Meanwhile, the SARSA approach didn't yield the results we were expecting. Due to its nature of optimizing features, the score really depends on how good the features can explain the environment and allow the model to learn. With a different set of features this might have resulted but for now we have to say that the SARSA is not solving the complicated environments. 
 We can finally say that the overall results shows that the environment can be learned with the REINFORCE agent giving really promising results for our tests, but we ask ourself if it would be applicable to a real problem, where we have an even more complex situation. It would be interesting to add even more complexity to the environment, mimicking more closely reality, and see if our REINFORCE can be improved to solve this environment too. 
 
 
 %	This section summarizes the paper: Your environment and agent, its strength and its weaknesses. Also remark about what would be the next steps you would take if you or someone else were to continue/extend this project. 
 %	Note that for the initial submission you are limited strictly to 4 pages (double column), \emph{not including references}. An extra page will be allowed for final submission (after the initial reviews). 
 
-\section{Appendix}
-Derivation of the gradient for REINFORCE:
+\appendix
+\label{appendixA}
+A. Approximate SARSA
+\begin{table}[h]
+	\caption{\label{a_table}Features of the Q-function approximation.}
+	\centering
+	\begin{tabular}{p{2cm} p{3.2cm} l}
+		\hline
+		\textbf{Feature} & \textbf{Description} & \textbf{Computation}  \\
+		\hline
+		Bias        					& -             & $1$ \\
+		Sales reward        	& Expected reward from sales             & $p \sum_{i=1}^{k}\hat{d}(\tilde{s})_i$ \\
+		Production cost 	& Production cost in the factory								& $\kappa_{pr}a_0$ \\
+		Storage cost		& Per location $i=0,...,k$					& $-\kappa_{st, i} \max\{\hat{s}_i, 0\}$\\
+		Penalty cost		& Per warehouse $i = 1,...,k$		& $\kappa_{pe} \min\{\hat{s}_i, 0\}$ \\		
+		Transportation cost & Per warehouse $i=1,...,k$ & 				$\kappa_{tr, i} \left\lceil \frac{a_i}{\zeta_i} \right\rceil$ \\
+		Factory stock & Sufficient factory stock to satisfy demand & $\hat{s}\geq \sum_{i=1}^{k}\hat{d}_i $\\
+		Positive stock & Per warehouse $i=1,...,k$ & $\hat{s}\geq 0 $ \\
+		Estimated demand & Per warehouse $i=1,...,k$ & $\hat{d}$ \\
+		Sq. estimated demand & Per warehouse $i=1,...,k$ & $\hat{d}^2$ \\
+		Storage level deviation & {Squared difference from different storage levels $q_i$}  & $ (\hat{s}_i - q_i)^2$ \\
+		Demand satisfaction & Is production able to satisfy expected demand & $a_0 \geq \sum_{i=1}^{k}\hat{d}_i$ \\
+		\hline
+	\end{tabular}
+\end{table}
+
+%\begin{equation}
+%\label{eq:one_step_reward}
+%\begin{split}
+%r(\tilde{s}, d, a) \coloneqq &p \sum_{j=1}^{k}d_i - \kappa_{pr} a_0 - \sum_{j=0}^{k} \kappa_{st, j} \max\{s_j, 0\} \\ 
+%&+\kappa_{pe} \sum_{j=1}^{k}\min\{s_j, 0\} - \sum_{j=1}^{k} \kappa_{tr, j} \left\lceil \frac{a_j}{\zeta_j} \right\rceil,
+%\end{split}
+%\end{equation}
+
+
+
+B. Derivation of the gradient for REINFORCE
+\label{appendixB}
 \begin{equation}
 \begin{split}
 	\nabla_{w_j}J(\Theta) & = 
@@ -390,6 +440,11 @@ and for $i \neq j$:
 	\bibitem{sQ}
 	H.~Tempelmeier, Inventory management in supply networks: problems, models, solutions,
 	{\em Books on Demand}, 2011.
+	
+%	\bibitem{beerGame}
+%	S.~Kamal Chaharsooghi, J.~Heydari,S.~Hessameddin Zegordi, A reinforcement learning model for supply chain ordering management: An application to the beer game
+%	{\em Books on Demand}, 2008.
+	
 
 %	\bibitem{Barber} % Book
 %	D.~Barber. Bayesian Reasoning and Machine Learning,
