@@ -315,6 +315,8 @@ The REINFORCE approach is certainly a viable option for this environment as it p
 Additional drawbacks come from the softmax parametrization which 
 requires parameters for each action. This requires a lot of training and can lead to difficulties for actions that are rarely feasible. Moreover, the actions to replenish 0, 1 or 2 trucks are treated as completely separate, dropping the possibility to make use of their natural order. Another parametrization that would make use of this order would be e.g. a Gaussian setting. 
 Unfortunately, our implementation of using independent Gaussians to parametrize the actions for each entity individually failed to show reasonable learning and was therefore dropped from this report.
+Meanwhile, the SARSA approach didn't yield the results we were expecting. Due to its nature of optimizing features, the score really depend on how good this features can explain the environment and allow the model to learn. With a different set of features this might have resulted but for now we have to say that the SARSA is not solving the complicated environments. 
+We can finally say that the overall results shows that the environment can be learned with the REINFORCE agent giving really promising results for our tests, but we ask ourself if it would be applicable to a real problem, where we have an even more complex situation. It would be interesting to add even more complexity to the environment, mimicking more closely reality, and see if our REINFORCE can be improved to solve this environment too. 
 
 
 %	This section summarizes the paper: Your environment and agent, its strength and its weaknesses. Also remark about what would be the next steps you would take if you or someone else were to continue/extend this project. 
