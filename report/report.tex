@@ -260,52 +260,54 @@ A key parameter for this algorithm is the learning rate which we left constant, 
 %		\hline
 %	\end{tabular}
 %\end{table}
-To test the algorithms, two main test were done. All of the tests were computed using episodes of 24 steps each in which our demand distributions make a whole cycle, allowing it to have the full seasonal demand.\newline
-
-
+To evaluate the algorithms performance we will discuss the results obtained from two different test settings. In both tests each episode consists of 24 steps thus simulating one full demand cycle. This implies that the agent is faced by low demands during the first steps and high demands during the end of the episode. The underlying idea is to train the agent so that it learns to build up stock according to the current state of the demand cycle.
 %%%%%%%%%%%%
-%The first test with only the factory and one warehouse includes %production cost, a storage cost for the warehouse only, a %transportation cost, and a penalty cost for not delivering enough %products. A strategy for the agents to learn is that even though %the costs for production, storing and transportation give a %negative short-term reward, they are necessary to avoid huge %penalty costs in the future. Since the demand increases towards %the end of the year, the optimal strategy is to build up stock, %since production alone cannot satisfy this demand.
+The first test with only the factory and one warehouse includes cost for production, storage (except for the factory) and transportation as well as penalty cost if the demand cannot be satisfied. A viable strategy for the agents to learn is that even though the costs of production, storage and transportation lead to short-term negative rewards, they are necessary to avoid large penalty costs in the future. Since the demand increases towards the end of the year it is necessary to build up stock because production alone cannot satisfy this demand.
 %%%%%%%%%%%%%%%
-The first test is a simple test, having only the factory and one warehouse,  with no storage cost in the factory and small cost of production, transportation and storage in the warehouse. 
+%The first test is a simple test, having only the factory and one warehouse,  with no storage cost in the factory and small production cost, transportation and storage in the warehouse. 
 %The objective of this test was to see if the agents can learn that even if producing, sending and storing is a bad decision in short term, because there is a penalty cost that accumulates for not sending the goods to the warehouse, the overall strategy should be to do it anyway.
 %%%%%%%%%%
  %But because there is a cost of production, the optimal strategy would be to not build as much as we can but to build enough to be able to satisfy the season of high demand but no more than that.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\columnwidth]{medium_2_env_rewards.png}
-	\caption{\label{medium_2_env_rewards} Rewards over time for the three agents in the first test.}
+	\caption{\label{medium_2_env_rewards} Average reward on a sliding window of size $100$ for the first test.}
 \end{figure}
 \newline
-The graph seen in Figure 3 shows that both the approximate SARSA algorithm and the REINFORCE can learn this task, with the REINFORCE algorithm having slightly better results and with notable better results that the $(\varsigma, Q)$-Policy based agent, who sends and produces goods before they are needed and ends up getting a higher penalty. This shows that the basis of our environment can be learned by our agents even if they are only getting weak signals.\newline
-The second test is a harder environment. 
-In this environment the number of warehouses went up to 3, with the particularity of having warehouse n°3 with no storage or transportation costs.
+The graph seen in Figure~\ref{medium_2_env_rewards} shows that both the approximate SARSA and REINFORCE algorithm can learn this task. Note that we depict three different versions of the reinforce algorithm based on different feature-maps ($\phi$): linear, quadratic and a radial-basis-function (RBF). Figure~\ref{medium_2_env_rewards} suggests that all RL agents outperform the baseline $(\varsigma, Q)$-policy. Furthermore we obtain the best results when using REINFORCE with a linear feature-map followed by REINFORCE with quadratic and RBF feature maps that depict a very similar performance. The approximate SARSA, even though outperforming the $(\varsigma, Q)$-policy, is clearly inferior to the REINFORCE algorithm.
+%with the REINFORCE algorithm having slightly better results and with notable better results that the $(\varsigma, Q)$-Policy based agent, who sends and produces goods before they are needed and ends up getting a higher penalty. This shows that the basis of our environment can be learned by our agents even if they are only getting weak signals.\newline
+The second test is based on a more complex environment that consists of three warehouses where the second and third warehouse have no storage costs and the third warehouse also has no transportation cost.
+%The second test is a harder environment. 
+%In this environment the number of warehouses went up to 3, with the particularity of having warehouse n°3 with no storage or transportation costs.
 %In this environment the number of warehouses went up to 3, each with different properties. The first warehouse has a high storage and transportation cost, the second warehouse has no storage cost but high transportation cost and the third one no transportation nor storage cost. Furthermore, because of how the production and the demand are balanced there are not enough goods to satisfy all the demand, the agent need to learn everything he learned in the simple scenario but also to prioritize some warehouses before others.
+The results of the second teest are depicted in figure~\ref{weird_2_env_rewards}. When analyzing the performance of the different algorithms we can see that the approximate SARSA agent and the REINFORCE agent with a linear feature-map are not able to learn within the environment. This leads to low, stable rewards and contrasts the quadratic and RBF REINFORCE agents that show a clear learning curve and outperform the $(\varsigma, Q)$-Policy after roughly $6000$ training episodes.
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\columnwidth]{weird_2_env_rewards.png}
-	\caption{\label{weird_2_env_rewards} Rewards over time for the three agents in the second test.}
+	\caption{\label{weird_2_env_rewards} Average reward on a sliding window of size $100$ for the second test.}
 \end{figure}
 \begin{figure}
 	\raggedleft
 	\begin{subfigure}[b]{0.5\textwidth}
 		\includegraphics[width=1\columnwidth]{reinforce_stocks.png}
-		\caption{Stocks for the $(\varsigma, Q)$-Policy based agent.}
+		\caption{Stocks for the REINFORCE agent using a gradatic $\phi$.}
 		\label{reinforce_stocks}
 	\end{subfigure}
 	%\newline
 	\begin{subfigure}[b]{0.5\textwidth}
 		\includegraphics[width=1\columnwidth]{s_q_stocks.png}
-		\caption{ Stocks for the REINFORCE agent.}
+		\caption{Stocks for the $(\varsigma, Q)$-Policy based agent.}
 		\label{s_q_stocks}
 	\end{subfigure}
 	\caption{Stocks in the second test}\label{fig:animals}
 	 \vspace{-10pt}
 \end{figure}
-This second graphs seen in Figure 4 shows the $(\varsigma, Q)$-Policy based agent who begins with better results thanks to his simple yet good solution, but after all the training the REINFORCE algorithm manages to learn a better strategy. As shown in Figure 5, the storage levels in the differents stores for the $(\varsigma, Q)$-Policy strategy are pretty similar while on the REINFORCE we have the warehouse 1 who has at beginning almost zero stock due to its high storage cost, and when the demand is too high the first two warehouses are forfeit to the third one, because of its zero cost of storage and transportation. \newline
-The SARSA on the other hand does not manage to learn the right strategy, building less stock during the low demand and not prioritizing early warehouse n°3. This comes from the fact that the SARSA algorithm is really dependant on his set of features and can only learn strategies that could be obtained with a right combination of weights for this features.
+In order to obtain a more in-depth understanding of why the REINFORCE algorithm is able to outperform the $(\varsigma, Q)$-Policy, in figure~\ref{reinforce_stocks} and~\ref{s_q_stocks} we depict storage levels within the best episodes of both agents. Here we immidiately see the higher flexibility of the REINFORCE agent that builds up a high amount of stock in the beginning and then uses it to satisfy the high demands at the end of the episode. This also highlights one of the main drawbacks of the $(\varsigma, Q)$-agent: it is based on a static policy and cannot adapt to changes in the environment. Furthermore we can see that both agents manage to keep positive stock levels most of the time but that the REINFORCE agent is able to allocate stock more efficiently at warehouses two and three that do not have storage costs while keeping the stock of warehouse one close to $0$.
+%This second graphs seen in Figure 4 shows the $(\varsigma, Q)$-Policy based agent who begins with better results thanks to his simple yet good solution, but after all the training the REINFORCE algorithm manages to learn a better strategy. As shown in Figure 5, the storage levels in the differents stores for the $(\varsigma, Q)$-Policy strategy are pretty similar while on the REINFORCE we have the warehouse 1 who has at beginning almost zero stock due to its high storage cost, and when the demand is too high the first two warehouses are forfeit to the third one, because of its zero cost of storage and transportation. \newline
+%The SARSA on the other hand does not manage to learn the right strategy, building less stock during the low demand and not prioritizing early warehouse n°3. This comes from the fact that the SARSA algorithm is really dependant on his set of features and can only learn strategies that could be obtained with a right combination of weights for this features.
 %And because this weight can't be positive and negative at the same time, a simple feature like "storage level" can't tell the algorithm how much to store but only that storing is good or bad. So a balance between the features needs to be reached, where the agent can say that producing is good unless there is too much. This balancing of feature is hard to learn and provoques bad results in too complicated scenarios. This might be solved with a different combination of features but for this particulars parameters none was found.\newline
 %Other test also showed a small issue for the REINFORCE learning. Because the actions provided are limited to sending 0, 1 or 2 full trucks, there is a problem in some scenarios if the maximum posible production is notably lower than the truck capacity. This issue could be solved by chanching the posible actions of the REINFORCE algorithm but require some understanding of scenario and is not ideal. 
-The readers are encouraged to create their own scenarios in \textit{testing.py} to see the different performances of the agents. To compare their performances or recreate the graphs seen in this paper \textit{graph\_creation.py} needs to be run.
+We encourage the readers to create their own scenarios in \textit{testing.py} to compare the different performances of the agents. To compare the individual agents performance or recreate the graphs depcited in this paper the script \textit{graph\_creation.py} needs to be run.
 
  
 
@@ -317,7 +319,7 @@ The readers are encouraged to create their own scenarios in \textit{testing.py} 
 %	\includegraphics[width=0.8\columnwidth]{alife.png}
 %	\caption{\label{a_figure}An example figure}
 %\end{figure}
-Our implementation of the approximate SARSA algorithm uses a very specific value function approximation that depends strongly on assumptions about the underlying environment. Since this environment has no structural similarity with the ALife\footnote{\url{https://github.com/jmread/alife}} environment it can not be used for testing. To adapt the algorithm to the ALife environment it would be necessary to create new features and design a different function $\phi$ to be used within the existing agent.
+Our implementation of the approximate SARSA algorithm uses a specificly designed value function approximation that depends strongly on assumptions made about the underlying environment. Since our supply chain environment has no structural similarity with the ALife\footnote{\url{https://github.com/jmread/alife}} environment it is not possible to directly deploy our agent. To adapt the algorithm to the ALife environment it would be necessary to create new features and design a different $\phi$ to be used within the existing agent.
 \newline
 In general, the REINFORCE approach is very nicely applicable to the Alife environment as was shown in the lab. Allowing multiple possible actions can also be a reasonable extension. Our implementation, however, is not directly transferable, since we use additional information about which actions are possible which is not available in the Alife environment.
 \section{Conclusion and Future Work}
