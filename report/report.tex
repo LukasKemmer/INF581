@@ -198,15 +198,17 @@ that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{100}, +1\m
 \textbf{REINFORCE} is based on a parametrized policy for which the expected reward has to be maximized. We assume our policy to be parametrized as a softmax function for multiple actions. The softmax function assigns a probability for each action and thus behaves as a stochastic policy which can, however, converge to a deterministic one. 
 We discretize the action space such that we only have three available actions per location (for each warehouse and the factory). For a warehouse, for example, these possible actions are an order of  0,1 or 2 full trucks from the factory. For a given state, some actions might not be available. Since a projection of an unfeasible action to the closest feasible action is not possible in our environment, we used an alternative approach which only updates parameters for available actions. 
 This leads to the following policy parametrization:
-\begin{align}
+\begin{equation}
     \label{simple_equation}
-    p( a = a^{(i)}| s) = \pi_\Theta(a = a^{(i)}|s) =
+    \begin{split}
+    p( a = a^{(i)}| s)& =  \pi_\Theta(a = a^{(i)}|s) 
     \notag
     \\
-     =\frac{e^{\phi(s)^T w_{a^{(i)}}}\cdot f(a^{(i)}|s)}{\sum_{j=1}^{n_a} e^{\phi(s)^T w_{a^{(j)}}}\cdot f(a^{(j)}|s)} 
-     :=
+     & =\frac{e^{\phi(s)^T w_{a^{(i)}}}\cdot f(a^{(i)}|s)}{\sum_{j=1}^{n_a} e^{\phi(s)^T w_{a^{(j)}}}\cdot f(a^{(j)}|s)}\\ 
+     & :=
      \sigma_i(s)
-\end{align}
+     \end{split}
+\end{equation}
 where 
 \begin{equation}
    f(a^{(j)}|s) =
@@ -322,52 +324,48 @@ Unfortunately, our implementation of using independent Gaussians to parametrize 
 
 \section{Appendix}
 Derivation of the gradient for REINFORCE:
-\begin{align}
-	\nabla_{w_j}J(\Theta) = 
+\begin{equation}
+\begin{split}
+	\nabla_{w_j}J(\Theta) & = 
 \nabla_{w_j} ln(\pi_\Theta(a(t) = a^{(i)},s(t)))D_t
 \notag
-\end{align}
+\end{split}
+\end{equation}
 where for $i = j$ 
-\begin{gather}
-\nabla_{w_j} ln(\pi_\Theta(a(t) = a^{(i)},s))= 
-\notag
-\\ 
-=\nabla_{w_j} (\phi(s)^T w_{a^{(i)}}) + \nabla_{w_j} ln(f(a^{(i)}|s))
-+
+\begin{equation}
+\begin{split}
+\nabla_{w_j} & ln(  \pi_\Theta(a(t)= a^{(i)},s)) \\
+ &=\nabla_{w_j} (\phi(s)^T w_{a^{(i)}}) + \nabla_{w_j} ln(f(a^{(i)}|s))
 \notag
 \\
- - 
-\nabla_{w_j} ln(\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s))=
+ & - 
+\nabla_{w_j} ln(\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s))
 \notag
 \\
-=
-\phi(s) + 0 - \frac{ e^{\phi(s)^T w_{a^{(j)}}} \cdot f(a^{(j)}|s)}{\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s)} \cdot \phi(s)
-=
+& =
+\phi(s) - \frac{ e^{\phi(s)^T w_{a^{(j)}}} \cdot f(a^{(j)}|s)}{\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s)} \cdot \phi(s)
 \notag
 \\
-=(1-\sigma_j(s))\cdot \phi(s)
-\end{gather}
+&=(1-\sigma_j(s))\cdot \phi(s)
+\end{split}
+\end{equation}
 
 and for $i \neq j$:
-\begin{gather}
-\nabla_{w_j} ln(\pi_\Theta(a(t) = a^{(i)},s))= 
-\notag
+\begin{equation}
+\begin{split}
+\nabla_{w_j} & ln(\pi_\Theta(a(t) = a^{(i)},s))
 \\ 
-=\nabla_{w_j} (\phi(s)^T w_{a^{(i)}}) + \nabla_{w_j} ln(f(a^{(i)}|s))
-+
-\notag
+ & =\nabla_{w_j} (\phi(s)^T w_{a^{(i)}}) + \nabla_{w_j} ln(f(a^{(i)}|s))
 \\
- - 
-\nabla_{w_j} ln(\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s))=
-\notag
+ & - 
+\nabla_{w_j} ln(\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s))
 \\
-=
-0 + 0 - \frac{ e^{\phi(s)^T w_{a^{(j)}}} \cdot f(a^{(j)}|s)}{\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s)} \cdot \phi(s)
-=
-\notag
+&=- \frac{ e^{\phi(s)^T w_{a^{(j)}}} \cdot f(a^{(j)}|s)}{\sum_{l=1}^{n_a} e^{\phi(s)^T w_{a^{(l)}}}\cdot f(a^{(l)}|s)} \cdot \phi(s)
 \\
-=-\sigma_j(s)\cdot \phi(s)
-\end{gather}
+& =-\sigma_j(s)\cdot \phi(s)
+\notag
+\end{split}
+\end{equation}
 
 % The bibliography:
 \begin{thebibliography}{4}
