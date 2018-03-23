@@ -197,7 +197,8 @@ When testing the approximate SARSA algorihm we found that for some environments 
 	\delta_n = r(\tilde{s_n}, d_n, a_n) + \gamma \theta_n^T \phi(\tilde{s}_{n+1}, a_{n+1}) - \theta_n^T\phi(\tilde{s}_n, a_n)
 \end{equation}
 that is used to update $\theta_n$ within the intervall $[-1\mathrm{e}{100}, +1\mathrm{e}{100}]$. Furthermore we initialize the agent with a very small stepsize $\alpha$. 
-\textbf{REINFORCE} is based on a parametrized policy for which the expected reward has to be maximized. We assume our policy to be parametrized as a softmax function for multiple actions. The softmax function assigns a probability for each action and thus behaves as a stochastic policy which can, however, converge to a deterministic one. 
+\newline
+\textbf{REINFORCE} is based on a parametrized policy for which the expected reward has to be maximized. We parametrize our policy as a softmax function for multiple actions. The softmax function assigns a probability for each action and thus behaves as a stochastic policy which can, however, converge to a deterministic one. 
 We discretize the action space such that we only have three available actions per location (for each warehouse and the factory). For a warehouse, for example, these possible actions are an order of  0,1 or 2 full trucks from the factory. For a given state, some actions might not be available. Since a projection of an unfeasible action to the closest feasible action is not possible in our environment, we used an alternative approach which only updates parameters for available actions. 
 This leads to the following policy parametrization:
 \begin{equation}
@@ -215,12 +216,12 @@ where
 \begin{equation}
    f(a^{(j)}|s) =
    \begin{cases}
-     1 & \text{if $a^{(j)}$ is allowed in state s} \\
-     0 & \text{otherwise} \\ 
+     1 & \text{if $a^{(j)}$ is allowed in state s,} \\
+     0 & \text{otherwise.} \\ 
    \end{cases}
 \end{equation}
 As we allow 3 different actions per entity, the number of possible actions is $n_a = 3^{(k+1)}$. 
-The feature map $\phi(s): \mathbb{Z}^{k+1} \rightarrow \mathbb{R}^{d}$ maps the state into a space of dimension d in which an optimal action is easily seperable from the other ones. We tried several different options for $\phi(s)$ including first and second order terms and radial basis functions. We always include a bias term as well.
+The feature map $\phi(s): \mathbb{Z}^{k+1} \rightarrow \mathbb{R}^{d}$ maps the state into a space of dimension d in which an optimal action is easily seperable from the other ones. We tried several different options for $\phi(s)$ including first and second order terms and radial basis functions. We also include the most recent demand and the change of demand in the last time step. This additional information about the state is needed to include the time dependency of the seasonal cycle. We always include a bias term as well.
 The parameter matrix $\Theta$ is assembled in the following way:
 \begin{equation}
 	\Theta = \big(w_1|w_2|...|w_{n_a}\big) \in \mathbb{R}^{d \times n_a }
@@ -239,6 +240,9 @@ A gradient ascent method is used to find the parameters that maximize the expect
 \end{equation}
 The full derivation for this gradient is shown in the Appendix.\newline
 A key parameter for this algorithm is the learning rate which we left constant, but close to zero since a small learning rate allows a lot of exploration which is needed for all parameters to adapt. 
+
+
+
 \section{Results and Discussion}
 \label{sec:results}
 %This is one of the most important sections. You put your agent to the test in the environment, you show -- and most importantly -- you interpret the results.
@@ -257,6 +261,8 @@ A key parameter for this algorithm is the learning rate which we left constant, 
 %	\end{tabular}
 %\end{table}
 To test the algorithms, two main test were done. All of the tests were computed using episodes of 24 steps each in which our demand distributions make a whole cycle, allowing it to have the full seasonal demand.\newline
+
+
 %%%%%%%%%%%%
 %The first test with only the factory and one warehouse includes %production cost, a storage cost for the warehouse only, a %transportation cost, and a penalty cost for not delivering enough %products. A strategy for the agents to learn is that even though %the costs for production, storing and transportation give a %negative short-term reward, they are necessary to avoid huge %penalty costs in the future. Since the demand increases towards %the end of the year, the optimal strategy is to build up stock, %since production alone cannot satisfy this demand.
 %%%%%%%%%%%%%%%
@@ -315,11 +321,17 @@ Our implementation of the approximate SARSA algorithm uses a very specific value
 \newline
 In general, the REINFORCE approach is very nicely applicable to the Alife environment as was shown in the lab. Allowing multiple possible actions can also be a reasonable extension. Our implementation, however, is not directly transferable, since we use additional information about which actions are possible which is not available in the Alife environment.
 \section{Conclusion and Future Work}
-The REINFORCE approach is certainly a viable option for this environment as it performs well in each scenario. Of course, the algorithm does have some downsides. As a gradient ascend algorithm it can easily get stuck in local optima which can easily arise in this most likely non-convex setting. 
+The REINFORCE approach is certainly a viable option for this environment as it performs well in each scenario. Of course, the algorithm does have some downsides. As a gradient ascent algorithm it can easily get stuck in local optima which can easily arise in this most likely non-convex setting. 
 Additional drawbacks come from the softmax parametrization which 
 requires parameters for each action. This requires a lot of training and can lead to difficulties for actions that are rarely feasible. Moreover, the actions to replenish 0, 1 or 2 trucks are treated as completely separate, dropping the possibility to make use of their natural order. Another parametrization that would make use of this order would be e.g. a Gaussian setting. 
 Unfortunately, our implementation of using independent Gaussians to parametrize the actions for each entity individually failed to show reasonable learning and was therefore dropped from this report.
-Meanwhile, the SARSA approach didn't yield the results we were expecting. Due to its nature of optimizing features, the score really depend on how good this features can explain the environment and allow the model to learn. With a different set of features this might have resulted but for now we have to say that the SARSA is not solving the complicated environments. 
+Another aspect to mention is the high variance that can be seen in the plots for the REINFORCE algorithm. In fact, these occur due to a small learning rate that is necessary to retain exploration. In fact, as the learning proceeds, the softmax function assigns a decreasing probability to non-optimal actions which would eventually results in a convergence to a deterministic policy that shows very little variance. 
+
+A crucial aspect for both approaches is feature engineering. The features have to contain all the information necessary to find the best strategy. Often a linear dependency of the optimal action on the current state is reasonable enough. E.g. the best action for the replenishment of products for a warehouse might depend linearly on the current stock in that warehouse. But also more complex, non-linear dependencies might be present which then have to be considered in feature engineering. A promising alternative might be to use a deep neural network in order for the agent to be able to adapt to any non-linear dependency. 
+
+
+
+Meanwhile, the SARSA approach didn't yield the results we were expecting. Due to its nature of optimizing features, the score really depends on how good the features can explain the environment and allow the model to learn. With a different set of features this might have resulted but for now we have to say that the SARSA is not solving the complicated environments. 
 We can finally say that the overall results shows that the environment can be learned with the REINFORCE agent giving really promising results for our tests, but we ask ourself if it would be applicable to a real problem, where we have an even more complex situation. It would be interesting to add even more complexity to the environment, mimicking more closely reality, and see if our REINFORCE can be improved to solve this environment too. 
 
 
