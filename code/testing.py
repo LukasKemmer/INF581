@@ -25,7 +25,7 @@ from evaluate_agent import print_step
 results_folder_path = "../results/"
 
 # Simulation parameters
-n_episodes = 10000
+n_episodes = 15000
 max_steps = 24 # 24 Months
 
 # Visualization parameters
@@ -40,11 +40,9 @@ env_names = []
 # Agent Variables
 add_s_q = True
 add_sarsa = True
-add_sarsa_V3 = False
-add_reinforce_1 = False
-add_reinforce_2 = True
-add_reinforce_3 = False
-add_reinforce_4 = False
+add_reinforce_1 = True  # Linear
+add_reinforce_2 = True  # Quadratic
+add_reinforce_3 = True  # RBF
 
 # Simple2,3,4, Medium,2,3,4, weird,2, Difficult
 test_to_run = [False, False, False, True, False, False, False, False, True, False, False]
@@ -223,13 +221,9 @@ for test_num in range(len(test_to_run)):
             result_file_names.append(test_name + "_sarsa_V1")
             agents.append(approximate_sarsa_agent(env))
 
-        if add_sarsa_V3:
-            result_file_names.append(test_name + "_sarsa_V3")
-            agents.append(approximate_sarsa_agent_V3(env))
-
         if add_reinforce_1:
             result_file_names.append(test_name + "_reinforce3")
-            agents.append(REINFORCE_agent(env, actions_per_store=3, max_steps=max_steps))
+            agents.append(REINFORCE_agent(env, actions_per_store=3, max_steps=max_steps, type_of_phi=1))
 
         if add_reinforce_2:
             result_file_names.append(test_name + "_reinforce3_phi2")
@@ -237,11 +231,8 @@ for test_num in range(len(test_to_run)):
 
         if add_reinforce_3:
             result_file_names.append(test_name + "_reinforce3_phi3")
-            agents.append(REINFORCE_agent(env, actions_per_store=3, max_steps=max_steps, type_of_phi=3))
-
-        if add_reinforce_4:
-            result_file_names.append(test_name + "_reinforce3_phi4")
             agents.append(REINFORCE_agent(env, actions_per_store=3, max_steps=max_steps, type_of_phi=0))
+
 
         for i in range(len(agents)):
             evaluate_agent(agents[i], env, n_episodes, max_steps, output, status_freq, print_freq, log_freq,
