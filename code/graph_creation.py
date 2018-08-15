@@ -27,7 +27,9 @@ results_folder_path = "../results/"
 # Create auxiliary lists
 agents = []
 agent_labels = []
-add_s_q and add_graph_to_show("s_q", "s_q")
+marks = ['*', '+', 'o', '^', 'v', '+', 'p', 'h']
+colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
+add_s_q and add_graph_to_show("s_q", "(ς,Q)-Policy")
 add_sarsa and add_graph_to_show("sarsa_V1", "Sarsa")
 add_reinforce_1 and add_graph_to_show("reinforce3", "REINFORCE - Linear")
 add_reinforce_2 and add_graph_to_show("reinforce3_phi2", "REINFORCE - Quadratic")
@@ -46,12 +48,14 @@ for test_num in range(len(tests)):
                 if i >= 100:
                     sum100-= rewards[i-100]
                 rewards_window.append(sum100/min(i+1,100))
-            plt.title("Rewards for " + test)
-            plt.plot(range(0, 15000, 10), rewards_window[:15000:10], label=agent_labels[agent_num])
-            plt.xlabel('episodes', fontsize=15)
-            plt.ylabel('reward', fontsize=15)
+            #plt.title("Rewards for " + test)
+            plt.plot(range(0, 15000, 10), rewards_window[:15000:10], marks[agent_num]+"-", markevery=30,label=agent_labels[agent_num])
+            plt.xlabel('episodes', fontsize=18)
+            plt.ylabel('reward', fontsize=18)
             plt.tight_layout()
-            plt.legend()
+            plt.legend(loc=4, prop={'size': 15})
+            plt.tick_params(axis='both', which='major', labelsize=15)
+            plt.tick_params(axis='both', which='minor', labelsize=15)
         plt.show()
         if False:
             fig2 = plt.figure(figsize=(10, 4), dpi=120)
@@ -65,25 +69,30 @@ for test_num in range(len(tests)):
                     plt.plot(best_actions[:-1, 2], label='sending to warehouse 2')
                 if best_actions.shape[1] > 3:
                     plt.plot(best_actions[:-1, 3], label='sending to warehouse 1')
-                plt.xlabel('steps')
-                plt.ylabel('stock')
-                plt.legend()
+                plt.xlabel('steps', fontsize=18)
+                plt.ylabel('stock', fontsize=18)
+                plt.tight_layout()
+                plt.legend(loc=4, prop={'size': 15})
+                plt.tick_params(axis='both', which='major', labelsize=15)
+                plt.tick_params(axis='both', which='minor', labelsize=15)
                 plt.show()
         if True:
             for agent_num in range(len(agents)):
                 fig3 = plt.figure(figsize=(10, 4), dpi=120)
                 agent = agents[agent_num]
                 best_stocks = pd.read_csv(results_folder_path + test + "_" + agent + "_best_stocks.csv", header=None).values
-                plt.title("Stocks for the best policy for " + agent_labels[agent_num])
-                plt.plot(best_stocks[:-1,1], label='Stock warehouse 1')
+                #plt.title("Stocks for the best policy for " + agent_labels[agent_num])
+                plt.plot(best_stocks[:-1,1], 'o-', label='Stock warehouse 1')
                 if best_stocks.shape[1] > 2:
-                    plt.plot(best_stocks[:-1, 2], label='Stock warehouse 2')
+                    plt.plot(best_stocks[:-1, 2], '+-', label='Stock warehouse 2')
                 if best_stocks.shape[1] > 3:
-                    plt.plot(best_stocks[:-1, 3], label='Stock warehouse 3')
-                plt.plot(best_stocks[:-1,0], 'b', label='Stock factory')
+                    plt.plot(best_stocks[:-1, 3], 'x-', label='Stock warehouse 3')
+                plt.plot(best_stocks[:-1,0], '*b-', label='Stock factory')
                 plt.plot(np.zeros(len(best_stocks)), 'k')
-                plt.xlabel('steps', fontsize=15)
-                plt.ylabel('stock', fontsize=15)
+                plt.xlabel('steps', fontsize=18)
+                plt.ylabel('stock', fontsize=18)
                 plt.tight_layout()
-                plt.legend()
+                plt.legend(loc=1, prop={'size': 15})
+                plt.tick_params(axis='both', which='major', labelsize=15)
+                plt.tick_params(axis='both', which='minor', labelsize=15)
             plt.show()
